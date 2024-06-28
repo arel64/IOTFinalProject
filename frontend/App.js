@@ -6,10 +6,10 @@ export default function App() {
   const [counter, setCounter] = useState(null);
   // Lets add a connection state for SignalR
   const [connection, setConnection] = useState(null);
-
+  const url = "http://localhost:7071/api";
   useEffect( () => {
     const signalrConnection = new SignalR.HubConnectionBuilder()
-    .withUrl("<REPLACE_WITH_YOURS>", {
+    .withUrl(url, {
       withCredentials: false, // We disable the credential for simplicity.
       // TODO: check what happens when you disable this flag!
     })// Note we don't call the Negotiate directly, it will be called by the Client SDK
@@ -46,7 +46,7 @@ export default function App() {
 
 
   const increaseCounter = () => {
-    fetch("<Replace With yours>", {
+    fetch(url+"/IncreaseCounter", {
       method: 'GET',
     }).then((response) => {
       return response.text();
@@ -58,7 +58,7 @@ export default function App() {
   };
 
   const decreaseCounter = () => {
-    fetch("<Replace with yours>", {
+    fetch(url+"/DecreaseCounter", {
       method: 'GET',
     }).then((response) => {
       return response.text();
@@ -73,7 +73,7 @@ export default function App() {
   // This will be used to initialize the counter value upon
   // Startup.
   const readCounter = () => {
-    fetch("<Replace with yours>", {
+    fetch(url+"/ReadCounter", {
       method: 'GET',
     }).then((response) => {
       return response.text();
