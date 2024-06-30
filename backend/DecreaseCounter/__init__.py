@@ -15,15 +15,9 @@ def main(
     # lets just randomly draw our counter and return it.
     # count = random.randint(0, 499)
     try:
-        count = 1233
-        signalrHub.set(json.dumps({
-            'target': 'newCountUpdate',
-            'arguments': [f'{count}']
-        }))
-        return func.HttpResponse(f"{count}", status_code=200)
         connection_string = os.getenv('AzureWebJobsStorage')
         with TableClient.from_connection_string(connection_string, table_name='myTable') as table:
-            entity = table.get_entity("counters", "counter1")
+            entity = table.get_entity("counter", "counter1")
             count = entity['value'] = entity['value'] - 1
             table.update_entity(entity=entity)
         signalrHub.set(json.dumps({
