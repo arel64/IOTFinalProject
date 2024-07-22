@@ -1,8 +1,9 @@
 {
     "azureFunctions.deploySubpath": "backend",
     "azureFunctions.scmDoBuildDuringDeployment": true,
-    "azureFunctions.pythonVenv": "D:\\Dev\\forkiot2\\venv",
+    "azureFunctions.pythonVenv": "iotvenv",
     "azureFunctions.projectLanguage": "Python",
     "azureFunctions.projectRuntime": "~4",
-    "debug.internalConsoleOptions": "neverOpen"
+    "debug.internalConsoleOptions": "neverOpen",
+    "debugpy.debugJustMyCode": true
 }
