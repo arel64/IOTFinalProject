@@ -1,39 +1,9 @@
 import logging
 import azure.functions as func
 from azure.core.exceptions import HttpResponseError
-from azure.data.tables import TableClient,TableEntity,UpdateMode
-import os
-from dataclasses import dataclass
-from schemaUtils import BaseEntity,createTableIfNotExists, getMedicineTableName, getMyStoreName,writeEntityToTable
-@dataclass
-class Medicine(BaseEntity):
-    MedicineName: str | None
-    Manufacturer: str | None
-    ExpiryDate: str | None
-    BatchNumber: str | None
-    Price: float | None
-    StoreName: str | None
-    Quantity: int = 1
-    
-class MedicineRequestParser:
-    @staticmethod
-    def parse(req: func.HttpRequest) -> Medicine:
-        json = req.get_json()
-        medicine_name = json.get('medicineName')
-        manufacturer = json.get('manufacturer')
-        expiry_date = json.get('expiryDate')
-        batch_number = json.get('batchNumber')
-        price = json.get('price')
-        price = float(price) if price else None
-        storeName = getMyStoreName()
-        return Medicine(
-            MedicineName=medicine_name,
-            Manufacturer=manufacturer,
-            ExpiryDate=expiry_date,
-            BatchNumber=batch_number,
-            Price=price,
-            StoreName=storeName
-        )
+from schemaUtils import createTableIfNotExists, getMedicineTableName
+from Medicine import MedicineRequestParser,insertMedicineToInventory
+
 
 def main(
         req: func.HttpRequest
@@ -54,28 +24,3 @@ def main(
         logging.error(f"Exception: {e}")
         return func.HttpResponse(f"Something went wrong", status_code=500)
 
-def insertMedicineToInventory(medicine : Medicine, table : TableClient) -> None:
-    myStoreName = getMyStoreName()
-    partition_key = f"{myStoreName}_{medicine.MedicineName}_{medicine.BatchNumber}"
-    entities = table.query_entities(f"PartitionKey eq '{partition_key}'") # type: ignore
-    entity_list = list(entities)
-    if entity_list:
-        updateMedicineQuantity(table, entity_list)
-    else:
-        writeEntityToTable(medicine, table, partition_key)
-
-def updateMedicineQuantity(table : TableClient, sameMedicine : list[TableEntity]) -> None:
-    if len(sameMedicine) > 1:
-        raise ValueError("Duplicate entry for unique key found")
-    entity = sameMedicine[0]
-    quantity = entity.get('Quantity') # type: ignore
-    if quantity is None:
-        raise ValueError("Quantity not found in matching entity")
-    entity['Quantity'] = int(quantity) + 1 # type: ignore
-    table.update_entity(entity=entity, mode=UpdateMode.MERGE) # type: ignore
-
-def getStorageConnectionString() -> str:
-    connectionString = os.getenv('TableStorageAccountConnectionString') 
-    if connectionString is None:
-        raise ValueError("No connection string for table storage account")
-    return connectionString

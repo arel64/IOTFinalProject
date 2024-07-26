@@ -8,9 +8,9 @@ from schemaUtils import BaseEntity,createTableIfNotExists, getStoresTableName,wr
 
 @dataclass
 class Store(BaseEntity):
-    StoreName: str | None
-    Email: str | None
-    ContactNumber: str | None
+    StoreName: str
+    Email: str
+    ContactNumber: str
 
 class StoreRequestParser:
     @staticmethod

@@ -3,7 +3,9 @@ import os
 from typing import Any,Dict
 import uuid
 from azure.data.tables import TableClient,TableServiceClient
-
+from azure.core.credentials import AzureKeyCredential
+from azure.ai.formrecognizer import DocumentAnalysisClient
+from azure.storage.blob import BlobServiceClient,BlobClient,ContainerClient
 @dataclass
 class BaseEntity:
     def __post_init__(self):
@@ -20,6 +22,10 @@ def createTableIfNotExists(table_name:str)-> tuple[TableServiceClient,TableClien
     table_client = service_client.create_table_if_not_exists(table_name) # type: ignore
     return service_client,table_client
 
+def isEntryExists(table: TableClient, cond: str) -> bool:
+    entities = table.query_entities(cond) # type: ignore
+    entity_list = list(entities)
+    return bool(entity_list)
 def getStorageConnectionString() -> str:
     connectionString = os.getenv('TableStorageAccountConnectionString') 
     if connectionString is None:
@@ -43,5 +49,43 @@ def getMedicineTableName()-> str:
     if tableName is None:
         raise ValueError("No table name for medicine")
     return tableName
+def getDocumentAnalysisClient() -> DocumentAnalysisClient:
+    endpoint = os.getenv('FormRecogniserEndpoint')
+    key = os.getenv('FormRecogniserKey')
+    if endpoint is None or key is None:
+        raise ValueError("No endpoint or key for form recognizer")
+    document_analysis_client = DocumentAnalysisClient(
+        endpoint=endpoint, credential=AzureKeyCredential(key)
+    )
+    return document_analysis_client
+    
+def getBlobClient(connection_string: str, container_name: str,blob_name:str) -> BlobClient:
+    try:    
+        blob_service_client = BlobServiceClient.from_connection_string(connection_string)
+        blob_client = blob_service_client.get_blob_client(container=container_name, blob=blob_name)
+    except Exception as e:
+        raise ValueError(f"Could not get blob client {e}")
+    return blob_client
+def writeFileToBlob(connection_string: str, container_name: str, file_path: str, blob_name: str) -> None:
+    blob_client = getBlobClient(connection_string,container_name,blob_name)
+    with open(file_path, "rb") as data:
+        blob_client.upload_blob(data, overwrite=True) # type: ignore
+
+def readFileFromBlob(connection_string: str, container_name: str, blob_name: str, download_path: str) -> bool:
+    blob_client = getBlobClient(connection_string,container_name,blob_name)
+    if not blob_client.exists():
+        return False
+    with open(download_path, "wb") as download_file:
+        stream = blob_client.download_blob()     # type: ignore
+        download_file.write(stream.readall())
+    return True
+
+def getContainerClient(connection_string: str, container_name: str) -> ContainerClient:
+    blob_service_client = BlobServiceClient.from_connection_string(connection_string)
+    container_client = blob_service_client.get_container_client(container_name)
+    if not container_client.exists():
+        container_client.create_container()
+    return container_client
+
 def getMyStoreName()-> str:
     return "MyTestStore" #TOOD:: Get from auth

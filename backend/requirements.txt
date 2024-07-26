@@ -4,4 +4,7 @@
 
 azure-functions
 azure-data-tables
+azure-ai-formrecognizer
+azure-ai-textanalytics
+azure-storage-blob
 pydantic
