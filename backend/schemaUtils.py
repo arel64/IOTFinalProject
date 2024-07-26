@@ -6,6 +6,7 @@ from azure.data.tables import TableClient,TableServiceClient
 from azure.core.credentials import AzureKeyCredential
 from azure.ai.formrecognizer import DocumentAnalysisClient
 from azure.storage.blob import BlobServiceClient,BlobClient,ContainerClient
+from azure.ai.textanalytics import TextAnalyticsClient
 @dataclass
 class BaseEntity:
     def __post_init__(self):
@@ -31,6 +32,16 @@ def getStorageConnectionString() -> str:
     if connectionString is None:
         raise ValueError("No connection string for table storage account")
     return connectionString
+def getTextAnalyticsEndpoint() -> str:
+    endpoint = os.getenv('TextAnalyticsEndpoint')
+    if endpoint is None:
+        raise ValueError("No endpoint for text analytics")
+    return endpoint
+def getTextAnalyticsKey() -> str:
+    key = os.getenv('TextAnalyticsKey')
+    if key is None:
+        raise ValueError("No key for text analytics")
+    return key
 
 def getStoresTableName()-> str:
     tableName = os.getenv('StoresTableName')
@@ -86,6 +97,12 @@ def getContainerClient(connection_string: str, container_name: str) -> Container
     if not container_client.exists():
         container_client.create_container()
     return container_client
+def getTextAnalyticsClient() -> TextAnalyticsClient:
+    text_analytics_client = TextAnalyticsClient(
+        endpoint=getTextAnalyticsEndpoint(),
+        credential=AzureKeyCredential(getTextAnalyticsKey()),
+    )
+    return text_analytics_client
 
 def getMyStoreName()-> str:
     return "MyTestStore" #TOOD:: Get from auth
