@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, Button, Platform } from 'react-native';
+import {MapView,PROVIDER_GOOGLE } from 'react-native-maps'; 
 import * as FileSystem from 'expo-file-system';
 
 async function readAsStringAsync(fileUri) {
@@ -108,6 +109,15 @@ export default function App() {
         <Button title="Register Store" onPress={registerStore} />
         <Button title="Send Image" onPress={sendImage} />
       </View>
+      <MapView
+        style={styles.map}
+        initialRegion={{
+          latitude: 37.78825,
+          longitude: -122.4324,
+          latitudeDelta: 0.0922,
+          longitudeDelta: 0.0421,
+        }}
+      />
     </View>
   );
 }
@@ -127,5 +137,10 @@ const styles = StyleSheet.create({
     width: '60%',
     justifyContent: 'space-between',
     flexDirection: 'row',
+    marginBottom: 20,
+  },
+  map: {
+    width: '100px',
+    height: '100px',
   },
 });
