@@ -5,12 +5,13 @@ from azure.core.exceptions import HttpResponseError
 from dataclasses import dataclass
 from schemaUtils import BaseEntity,createTableIfNotExists, getStoresTableName,writeEntityToTable
 
-
 @dataclass
 class Store(BaseEntity):
     StoreName: str
     Email: str
     ContactNumber: str
+    Latitude :str
+    Longitude: str
 
 class StoreRequestParser:
     @staticmethod
@@ -19,10 +20,15 @@ class StoreRequestParser:
         storeName = json.get('storeName')
         email = json.get('email')
         contactNumber = json.get('contactNumber')
+        latitude = json.get('latitude')
+        longitude = json.get('longitude')
         return Store(
             StoreName=storeName,
             Email=email,
-            ContactNumber=contactNumber
+            ContactNumber=contactNumber,
+            Latitude=latitude,
+            Longitude=longitude
+        
         )
 
 def main(

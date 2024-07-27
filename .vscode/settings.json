@@ -1,9 +1,11 @@
 {
     "azureFunctions.deploySubpath": "backend",
     "azureFunctions.scmDoBuildDuringDeployment": true,
-    "azureFunctions.pythonVenv": "iotvenv",
+    "azureFunctions.pythonVenv": "D:\\Dev\\IOTFinalProject\\backend\\iotvenv",
     "azureFunctions.projectLanguage": "Python",
     "azureFunctions.projectRuntime": "~4",
     "debug.internalConsoleOptions": "neverOpen",
+    "python.terminal.activateEnvironment": true,
+    "python.defaultInterpreterPath": "D:\\Dev\\IOTFinalProject\\backend\\iotvenv\\Scripts\\python.exe",
     "debugpy.debugJustMyCode": true
 }

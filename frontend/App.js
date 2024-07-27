@@ -1,13 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, Button, Platform } from 'react-native';
-import {MapView,PROVIDER_GOOGLE } from 'react-native-maps'; 
+import MapView from 'react-native-maps';
 import * as FileSystem from 'expo-file-system';
-
+import { Asset } from 'expo-asset';
 async function readAsStringAsync(fileUri) {
   if (Platform.OS === 'web') {
     return await readFileAsStringWeb(fileUri);
   } else {
-    return await FileSystem.readAsStringAsync(fileUri, 'base64');
+    const fileInfo = await FileSystem.getInfoAsync(fileUri);
+    if (!fileInfo.exists) {
+      throw new Error(`File at ${fileUri} does not exist`);
+    }
+    const base64 = await FileSystem.readAsStringAsync(fileUri, { encoding: FileSystem.EncodingType.Base64 });
+    return base64;
   }
 }
 
@@ -31,7 +36,10 @@ function readFileAsStringWeb(fileUri) {
 
 export default function App() {
   const [status, setStatus] = useState(null);
-  const url = "http://localhost:7071/api";
+  const url = Platform.select({
+    ios: "http://localhost:7071/api",
+    android: "http://192.168.1.136:7071/api",
+  });
 
   const addMedicine = () => {
     const medicine = {
@@ -59,9 +67,11 @@ export default function App() {
 
   const registerStore = () => {
     const store = {
-      storeName: "New Pharmacy",
+      storeName: "Super Pharmacy",
       email: "newpharmacy@example.com",
-      contactNumber: "123-456-7890"
+      contactNumber: "123-456-7890",
+      latitude: 32.012071169113796,
+      longitude: 34.77936602696631
     };
 
     fetch(url + "/RegisterStore", {
@@ -78,10 +88,12 @@ export default function App() {
       (error) => { console.error(error); }
     );
   };
-  
+
   const sendImage = async () => {
     try {
-      const uri = "/assets/test2.jpg";
+      const asset = Asset.fromModule(require('./assets/test2.jpg'));
+      await asset.downloadAsync();
+      const uri = asset.localUri || asset.uri;
       const base64Img = await readAsStringAsync(uri);
       fetch(url + "/GetMedicineNames", {
         method: 'POST',
@@ -109,15 +121,6 @@ export default function App() {
         <Button title="Register Store" onPress={registerStore} />
         <Button title="Send Image" onPress={sendImage} />
       </View>
-      <MapView
-        style={styles.map}
-        initialRegion={{
-          latitude: 37.78825,
-          longitude: -122.4324,
-          latitudeDelta: 0.0922,
-          longitudeDelta: 0.0421,
-        }}
-      />
     </View>
   );
 }
@@ -140,7 +143,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   map: {
-    width: '100px',
-    height: '100px',
+    width: '50%',
+    height: '50%',
   },
 });

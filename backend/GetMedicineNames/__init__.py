@@ -141,7 +141,9 @@ def analyzeHealthcareEntities(wordsSentence : str) -> AnalyzeHealthcareEntitiesR
     if docs[0].is_error:
         raise ValueError("Error anylizing document")
     return docs[0] # type: ignore
-def getCachedTaggedValue(containerClient : ContainerClient,tagName :str,tagValue : str) -> FilteredBlob | None:
+from typing import Optional
+
+def getCachedTaggedValue(containerClient : ContainerClient,tagName :str,tagValue : str) -> Optional[FilteredBlob]:
     filter_expressions = f"\"{tagName}\"='{tagValue}'"
     blobs_iter = containerClient.find_blobs_by_tags(filter_expression=filter_expressions)
     blobs = list(blobs_iter)
@@ -150,11 +152,11 @@ def getCachedTaggedValue(containerClient : ContainerClient,tagName :str,tagValue
     if len(blobs) > 1:
         raise ValueError("More than one entry found")
     return blobs[0]
-def getCachedDocumentText(containerClient: ContainerClient,imageName : str) -> FilteredBlob | None:
+def getCachedDocumentText(containerClient: ContainerClient,imageName : str) -> Optional[FilteredBlob]:
     tagName = getBlobTagName()
     return getCachedTaggedValue(containerClient,tagName ,imageName)
 
-def getCachedMedicationsName(containerClient: ContainerClient,imageName : str) -> FilteredBlob | None:
+def getCachedMedicationsName(containerClient: ContainerClient,imageName : str) -> Optional[FilteredBlob]:
     tagName = getBlobTagName()
     return getCachedTaggedValue(containerClient,tagName ,imageName)
 
