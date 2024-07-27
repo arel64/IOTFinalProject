@@ -121,6 +121,14 @@ export default function App() {
         <Button title="Register Store" onPress={registerStore} />
         <Button title="Send Image" onPress={sendImage} />
       </View>
+      <MapView style={styles.map} initialRegion={
+        {
+          latitude: 32.012071169113796,
+          longitude: 34.77936602696631,
+          latitudeDelta: 0.0922,
+          longitudeDelta: 0.0421,
+        }
+      } />
     </View>
   );
 }
