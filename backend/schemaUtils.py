@@ -77,19 +77,6 @@ def getBlobClient(connection_string: str, container_name: str,blob_name:str) -> 
     except Exception as e:
         raise ValueError(f"Could not get blob client {e}")
     return blob_client
-def writeFileToBlob(connection_string: str, container_name: str, file_path: str, blob_name: str) -> None:
-    blob_client = getBlobClient(connection_string,container_name,blob_name)
-    with open(file_path, "rb") as data:
-        blob_client.upload_blob(data, overwrite=True) # type: ignore
-
-def readFileFromBlob(connection_string: str, container_name: str, blob_name: str, download_path: str) -> bool:
-    blob_client = getBlobClient(connection_string,container_name,blob_name)
-    if not blob_client.exists():
-        return False
-    with open(download_path, "wb") as download_file:
-        stream = blob_client.download_blob()     # type: ignore
-        download_file.write(stream.readall())
-    return True
 
 def getContainerClient(connection_string: str, container_name: str) -> ContainerClient:
     blob_service_client = BlobServiceClient.from_connection_string(connection_string)
