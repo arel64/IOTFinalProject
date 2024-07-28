@@ -32,11 +32,11 @@ class StoreEntityParser:
     @staticmethod
     def parse(entity: TableEntity) -> Store:
         return Store(
-            StoreName=entity.get('StoreName'),
-            Email=entity.get('Email'),
-            ContactNumber=entity.get('ContactNumber'),
-            Latitude=entity.get('Latitude'),
-            Longitude=entity.get('Longitude')
+            StoreName=entity.get('StoreName'), # type: ignore
+            Email=entity.get('Email'), # type: ignore
+            ContactNumber=entity.get('ContactNumber'), # type: ignore
+            Latitude=entity.get('Latitude'), # type: ignore
+            Longitude=entity.get('Longitude') # type: ignore
         )
 def getStoreUid(storeName: str) -> str:
     return storeName.replace(" ","").lower()
