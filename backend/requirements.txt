@@ -10,3 +10,4 @@ azure-identity
 azure-storage-blob
 azure-core
 pydantic
+pyjwt

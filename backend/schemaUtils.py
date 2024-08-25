@@ -2,11 +2,14 @@ from dataclasses import dataclass, asdict
 import os
 from typing import Any,Dict
 import uuid
+import azure.functions as func
 from azure.data.tables import TableClient,TableServiceClient
 from azure.core.credentials import AzureKeyCredential
 from azure.ai.formrecognizer import DocumentAnalysisClient
 from azure.storage.blob import BlobServiceClient,BlobClient,ContainerClient
 from azure.ai.textanalytics import TextAnalyticsClient
+import jwt
+
 @dataclass
 class BaseEntity:
     def __post_init__(self):
@@ -47,6 +50,12 @@ def getStoresTableName()-> str:
     tableName = os.getenv('StoresTableName')
     if tableName is None:
         raise ValueError("No table name for medicine")
+    return tableName
+
+def getTokensTableName()-> str:
+    tableName = os.getenv('TokensTableName')
+    if tableName is None:
+        raise ValueError("No table name for tokens")
     return tableName
 
 def writeEntityToTable(entity : BaseEntity, table : TableClient, partition_key : str) -> None:
@@ -91,5 +100,28 @@ def getTextAnalyticsClient() -> TextAnalyticsClient:
     )
     return text_analytics_client
 
-def getMyStoreName()-> str:
-    return "MyTestStore" #TOOD:: Get from auth
+def getMyStoreName(req: func.HttpRequest) -> str:
+    """
+    Extracts and returns the store name from the token in the request.
+
+    Args:
+    - req: The HTTP request object containing the token.
+
+    Returns:
+    - The store name if the token is valid.
+
+    Raises:
+    - ValueError if the token is missing, expired, or invalid.
+    - TokenExpiredError if the token is expired.
+    """
+    from TokenUtils import validateToken,  TokenExpiredError
+
+    try:
+        # Validate the token and extract the store name
+        store_name = validateToken(req)
+        return store_name
+    except jwt.ExpiredSignatureError:
+        # If the token is expired, raise a custom exception
+        raise TokenExpiredError()
+    except ValueError as e:
+        raise ValueError(f"Failed to retrieve store name: {e}")

@@ -1,8 +1,12 @@
+import hashlib
+import re
 from typing import Optional
 import azure.functions as func
 from dataclasses import dataclass
 from schemaUtils import BaseEntity, createTableIfNotExists, getStoresTableName, writeEntityToTable
 from azure.data.tables import TableEntity
+from TokenUtils import createJwt, storeToken
+
 @dataclass
 class Store(BaseEntity):
     StoreName: str
@@ -10,6 +14,7 @@ class Store(BaseEntity):
     ContactNumber: str
     Latitude :str
     Longitude: str
+    Password :str
 
 class StoreRequestParser:
     @staticmethod
@@ -20,12 +25,20 @@ class StoreRequestParser:
         contactNumber = json.get('contactNumber')
         latitude = json.get('latitude')
         longitude = json.get('longitude')
+        password = json.get('password')
+        
+        #Validate Email format
+        email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if not re.match(email_regex, email):
+            raise ValueError("Invalid email format")
+        
         return Store(
             StoreName=storeName,
             Email=email,
             ContactNumber=contactNumber,
             Latitude=latitude,
-            Longitude=longitude
+            Longitude=longitude,
+            Password=hashlib.sha256(password.encode()).hexdigest()  # Hash the password
         
         )
 class StoreEntityParser:
@@ -42,14 +55,32 @@ def getStoreUid(storeName: str) -> str:
     return storeName.replace(" ","").lower()
 
 
-def registerStore(store : Store) -> None:
+def registerStore(store : Store) -> dict:
     _,table_client = createTableIfNotExists(getStoresTableName())
+    partition_key = getStoreUid(store.StoreName)
+
     with table_client as table:
-        entity = getStoreEntity(store.StoreName)
-        if entity:
-            raise ValueError("Store already exists")
-        partition_key = getStoreUid(store.StoreName)
+        # Check if the store or email already exists
+        existing_stores_by_name = table.query_entities(f"PartitionKey eq '{partition_key}'")
+        existing_stores_by_email = table.query_entities(f"Email eq '{store.Email}'")
+
+        if list(existing_stores_by_name):
+            raise ValueError("A store with this name already exists")
+
+        if list(existing_stores_by_email):
+            raise ValueError("A store with this email already exists")
+        
         writeEntityToTable(store, table, partition_key)
+        
+        # Generate tokens upon successful registration
+        token = createJwt(store.StoreName)
+        # refresh_token = createRefreshToken()
+        storeToken(store.StoreName, token)
+
+        return {
+            'message': f"Store {store.StoreName} registered successfully",
+            'token': token
+            }
         
 def getStoreEntity(storeName: str) -> Optional[TableEntity]:
     _,table_client = createTableIfNotExists(getStoresTableName())
@@ -63,6 +94,7 @@ def getStoreEntity(storeName: str) -> Optional[TableEntity]:
         raise ValueError("Multiple stores found")
     
     return entity_list[0]
+
 def getStore(storeName: str) -> Optional[Store]:
     entity = getStoreEntity(storeName)
     if not entity:
