@@ -25,6 +25,7 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.madicinestore.mycounte",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
