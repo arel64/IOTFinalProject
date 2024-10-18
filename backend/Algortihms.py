@@ -1,5 +1,5 @@
 
-from Medicine import findMedicineEntities
+from Medicine import findMedicineEntitiesByName
 from schemaUtils import createTableIfNotExists, getMedicineTableName
 
 def getStoresWithMedicationGreedy(medicationNames: set[str]) -> tuple[set[str], set[str]]:
@@ -7,7 +7,7 @@ def getStoresWithMedicationGreedy(medicationNames: set[str]) -> tuple[set[str], 
     medication_to_stores = {med: set[str]() for med in medicationNames}
     
     for medicationName in medicationNames:
-        entities = findMedicineEntities(medicationsTable, medicationName)
+        entities = findMedicineEntitiesByName(medicationsTable, medicationName)
         for entity in entities:
             medication_to_stores[medicationName].add(entity['StoreName'])  # type: ignore
 

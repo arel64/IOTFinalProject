@@ -21,7 +21,8 @@ class BaseEntity:
 
     def asdict(self) -> Dict[str, Any]:
         return {key: str(value) if isinstance(value, (float, int)) else value for key, value in asdict(self).items()}
-
+    def uid(self):
+        raise NotImplementedError()
 
 def createTableIfNotExists(table_name: str) -> tuple[TableServiceClient, TableClient]:
     service_client = TableServiceClient.from_connection_string(
@@ -71,9 +72,9 @@ def getTokensTableName()-> str:
     return tableName
 
 
-def writeEntityToTable(entity: BaseEntity, table: TableClient, partition_key: str) -> None:
+def writeEntityToTable(entity: BaseEntity, table: TableClient) -> None:
     entity_dict = entity.asdict()
-    entity_dict['PartitionKey'] = partition_key
+    entity_dict['PartitionKey'] = entity.uid()
     entity_dict['RowKey'] = str(uuid.uuid4())
     table.create_entity(entity=entity_dict)  # type: ignore
 

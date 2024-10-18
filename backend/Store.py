@@ -14,7 +14,11 @@ class Store(BaseEntity):
     Latitude :str
     Longitude: str
     Password :str
-
+    def uid(self):
+        return self.uidFromName(self.StoreName)
+    @staticmethod
+    def uidFromName(name : str):
+        return name.replace(" ","").lower()
 class StoreRequestParser:
     @staticmethod
     def parse(req: func.HttpRequest) -> Store:
@@ -49,42 +53,13 @@ class StoreEntityParser:
             ContactNumber=entity.get('ContactNumber'), # type: ignore
             Latitude=entity.get('Latitude'), # type: ignore
             Longitude=entity.get('Longitude') # type: ignore
-        )
-def getStoreUid(storeName: str) -> str:
-    return storeName.replace(" ","").lower()
+        )    
 
 
-def registerStore(store : Store) -> dict:
-    _,table_client = createTableIfNotExists(getStoresTableName())
-    partition_key = getStoreUid(store.StoreName)
-
-    with table_client as table:
-        # Check if the store or email already exists
-        existing_stores_by_name = table.query_entities(f"PartitionKey eq '{partition_key}'")
-        existing_stores_by_email = table.query_entities(f"Email eq '{store.Email}'")
-
-        if list(existing_stores_by_name):
-            raise ValueError("A store with this name already exists")
-
-        if list(existing_stores_by_email):
-            raise ValueError("A store with this email already exists")
-        
-        writeEntityToTable(store, table, partition_key)
-        
-        # Generate tokens upon successful registration
-        token = createJwt(store.StoreName)
-        # refresh_token = createRefreshToken()
-        storeToken(store.StoreName, token)
-
-        return {
-            'message': f"Store {store.StoreName} registered successfully",
-            'token': token
-        }
-        
 def getStoreEntity(storeName: str) -> Optional[TableEntity]:
     _,table_client = createTableIfNotExists(getStoresTableName())
     with table_client as table:
-        storeUid = getStoreUid(storeName)
+        storeUid = Store.uidFromName(storeName)
         entities = table.query_entities(f"PartitionKey eq '{storeUid}'") # type: ignore
         entity_list = list(entities)
         if not entity_list:

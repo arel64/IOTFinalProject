@@ -1,3 +1,4 @@
+from typing import Optional
 import azure.functions as func
 from dataclasses import dataclass
 from schemaUtils import BaseEntity, writeEntityToTable
@@ -13,6 +14,8 @@ class Medicine(BaseEntity):
     Price: float
     StoreName: str
     Quantity: int = 1
+    def uid(self):
+        return f"{self.StoreName}_{self.MedicineName}_{self.BatchNumber}".lower()
     
 class MedicineRequestParser:
     @staticmethod
@@ -49,27 +52,50 @@ class MedicineEntityParser:
         )
 
 def insertMedicineToInventory(medicine : Medicine, table : TableClient, storeName : str) -> None:
-    partition_key = f"{storeName}_{medicine.MedicineName}_{medicine.BatchNumber}".lower()
-    entities = table.query_entities(f"PartitionKey eq '{partition_key}'") # type: ignore
-    entity_list = list(entities)
-    if entity_list:
-        updateMedicineQuantity(table, entity_list)
+    medicine_entity = findMedicineEntities(medicine,table,storeName)
+    if medicine_entity:
+        incrementMedicineQuantity(table,medicine_entity)
     else:
-        writeEntityToTable(medicine, table, partition_key)
+        writeEntityToTable(medicine, table)
+        
+def removeMedicineFromInventory(medicine : Medicine, table : TableClient, storeName : str) -> None:
+    medicine_entity = findMedicineEntities(medicine,table,storeName)
+    if medicine_entity:
+        decrementMedicineQuantity(table,medicine_entity)
+    else:
+        raise ValueError("Cannot checkout non existant medication")
 
-def updateMedicineQuantity(table : TableClient, sameMedicine : list[TableEntity]) -> None:
-    if len(sameMedicine) > 1:
-        raise ValueError("Duplicate entry for unique key found")
-    entity = sameMedicine[0]
-    quantity = entity.get('Quantity') # type: ignore
+def _offsetMedicineQuantity(table : TableClient, medicine : TableEntity,offset : int) -> None:
+    quantity = medicine['Quantity']
     if quantity is None:
         raise ValueError("Quantity not found in matching entity")
-    entity['Quantity'] = int(quantity) + 1 # type: ignore
-    table.update_entity(entity=entity, mode=UpdateMode.MERGE) # type: ignore
-def findMedicineEntities(table: TableClient, medicineName: str) -> list[TableEntity]:
+    new_quantity = int(quantity) + offset
+    if new_quantity < 0:
+        raise ValueError("There are no more avalible medicine of this type in the system")
+    medicine['Quantity'] = new_quantity
+    table.update_entity(entity=medicine, mode=UpdateMode.MERGE) # type: ignore 
+    
+def decrementMedicineQuantity(table : TableClient, medicine : TableEntity) -> None:
+    _offsetMedicineQuantity(table,medicine,-1)
+    
+def incrementMedicineQuantity(table : TableClient, medicine :TableEntity) -> None:
+    _offsetMedicineQuantity(table,medicine,1)
+
+def findMedicineEntities(medicine: Medicine, table : TableClient, storeName : str) -> Optional[TableEntity]:
+    entities = table.query_entities(f"PartitionKey eq '{medicine.uid()}'") # type: ignore
+    entity_list = list(entities)
+    if not entity_list:
+        return None
+    if len(entity_list) > 1:
+        raise ValueError("Duplicate entry for unique key found")
+    return entity_list[0] # type: ignore
+
+
+def findMedicineEntitiesByName(table: TableClient, medicineName: str) -> list[TableEntity]:
     entities = table.query_entities(f"MedicineName eq '{medicineName}'") # type: ignore
     return list(entities)
+
 def findMedicine(table: TableClient, medicineName: str) -> list[Medicine]:
-    entities = findMedicineEntities(table, medicineName)
+    entities = findMedicineEntitiesByName(table, medicineName)
     medicine = [MedicineEntityParser.parse(entity) for entity in entities]
     return medicine

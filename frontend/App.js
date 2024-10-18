@@ -8,12 +8,12 @@ import { Asset } from 'expo-asset';
 import AddMedicine from './AddMedicine';
 import GenerateQRCode from './GenerateQRCode';
 import AuthScreen from './AuthScreen';
+import CheckoutMedicine from './CheckoutMedicine';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
 
 const API_URL = Platform.select({
   ios: "http://localhost:7071/api",
-  android: "http://192.168.0.185:7071/api",
+  android: "http://192.168.1.226:7071/api",
 });
 
 async function readAsStringAsync(fileUri) {
@@ -52,7 +52,6 @@ function HomeScreen({ navigation }) {
   const [markers, setMarkers] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Helper function to make authenticated API requests with token refresh logic
   const validateToken = async (token) => {
     try {
       const response = await fetch(`${API_URL}/ValidateToken`, {
@@ -100,7 +99,6 @@ function HomeScreen({ navigation }) {
     }
   };
 
-
   const sendImage = async () => {
     setLoading(true);
     try {
@@ -117,7 +115,7 @@ function HomeScreen({ navigation }) {
         body: JSON.stringify({ imageData: base64Img, imageName: 'medicineSample.jpg' })
       });
 
-      if (!response) return; // Exit if the request failed
+      if (!response) return; 
 
       const data = await response.json();
       if (response.ok) {
@@ -146,6 +144,7 @@ function HomeScreen({ navigation }) {
         <Button title="Add Medicine" onPress={() => navigation.navigate('AddMedicine')} disabled={loading} />
         <Button title="Generate QR Code" onPress={() => navigation.navigate('GenerateQRCode')} disabled={loading} />
         <Button title="Send Image" onPress={sendImage} disabled={loading} />
+        <Button title="Checkout Medicine" onPress={() => navigation.navigate('CheckoutMedicine')} disabled={loading} />
       </View>
       <MapView
         style={styles.map}
@@ -184,6 +183,7 @@ export default function App() {
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="AddMedicine" component={AddMedicine} />
         <Stack.Screen name="GenerateQRCode" component={GenerateQRCode} />
+        <Stack.Screen name="CheckoutMedicine" component={CheckoutMedicine} />
       </Stack.Navigator>
     </NavigationContainer>
   );

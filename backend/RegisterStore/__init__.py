@@ -3,7 +3,8 @@ import logging
 import azure.functions as func
 from azure.core.exceptions import HttpResponseError
 
-from Store import StoreRequestParser, registerStore
+from Store import StoreRequestParser
+from TokenUtils import registerStore
 
 
 def main(req: func.HttpRequest) -> func.HttpResponse:

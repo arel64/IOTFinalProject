@@ -3,8 +3,8 @@ import jwt
 from dataclasses import dataclass
 import secrets
 from datetime import datetime, timedelta, timezone
-from schemaUtils import BaseEntity, createTableIfNotExists, writeEntityToTable, getTokensTableName
-from Store import getStoreUid
+from schemaUtils import BaseEntity, createTableIfNotExists, getStoresTableName, writeEntityToTable, getTokensTableName
+from Store import Store
 import azure.functions as func
 
 
@@ -17,8 +17,10 @@ class TokenExpiredError(Exception):
 
 @dataclass
 class TokenEntity(BaseEntity):
-    PartitionKey: str
+    StoreName: str
     Token: str
+    def uid(self):
+        return self.StoreName
 
 class TokenCredentials():
     @staticmethod
@@ -43,25 +45,25 @@ class TokenCredentials():
             raise ValueError("Invalid token")
     @staticmethod
     def _storeToken(store_name: str, token: str):
-        partition_key = getStoreUid(store_name)
+        storeUid = Store.uidFromName(store_name)
         _, table_client = createTableIfNotExists(getTokensTableName())
 
-        existing_entities = table_client.query_entities(f"PartitionKey eq '{partition_key}'")
+        existing_entities = table_client.query_entities(f"PartitionKey eq '{storeUid}'")
         entity_list = list(existing_entities)
 
         if entity_list:
-            logging.info(f"Updating the token for store {store_name}.")
+            logging.info(f"Updating the token for store {storeUid}.")
             token_entity = entity_list[0]
             token_entity['Token'] = token
             table_client.update_entity(entity=token_entity, mode="replace")  
             return
 
-        logging.info(f"Creating a new token for store {store_name}.")
+        logging.info(f"Creating a new token for store {storeUid}.")
         token_entity = TokenEntity(
-            PartitionKey=partition_key,
+            StoreName=storeUid,
             Token=token
         )
-        writeEntityToTable(token_entity, table_client, partition_key)
+        writeEntityToTable(token_entity, table_client)
 
     @staticmethod
     def decodeRequestToken(req: func.HttpRequest) -> dict:
@@ -73,7 +75,24 @@ class TokenCredentials():
         token = TokenCredentials._decode(token)
         return token
     
+def registerStore(store : Store) -> dict:
+    _,table_client = createTableIfNotExists(getStoresTableName())
+    with table_client as table:
+        existing_stores_by_name = table.query_entities(f"PartitionKey eq '{store.uid()}'")
+        existing_stores_by_email = table.query_entities(f"Email eq '{store.Email}'")
 
+        if list(existing_stores_by_name):
+            raise ValueError("A store with this name already exists")
+
+        if list(existing_stores_by_email):
+            raise ValueError("A store with this email already exists")
+        writeEntityToTable(store, table)
+        token = TokenCredentials().create(store.StoreName)
+        return {
+            'message': f"Store {store.StoreName} registered successfully",
+            'token': token
+        }
+        
                  
 
 
