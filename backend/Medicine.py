@@ -24,7 +24,7 @@ class MedicineRequestParser:
         batch_number : str = json.get('batchNumber')
         price = json.get('price')
         price = float(price) if price else 0
-        storeName = getMyStoreName()
+        storeName = getMyStoreName(req)
         return Medicine(
             MedicineNamePretty=medicine_name,
             MedicineName=medicine_name.lower(),
@@ -48,8 +48,8 @@ class MedicineEntityParser:
             Quantity=entity.get('Quantity')# type: ignore
         )
 
-def insertMedicineToInventory(medicine : Medicine, table : TableClient) -> None:
-    myStoreName = getMyStoreName()
+def insertMedicineToInventory(medicine : Medicine, table : TableClient, req : func.HttpRequest) -> None:
+    myStoreName = getMyStoreName(req)
     partition_key = f"{myStoreName}_{medicine.MedicineName}_{medicine.BatchNumber}".lower()
     entities = table.query_entities(f"PartitionKey eq '{partition_key}'") # type: ignore
     entity_list = list(entities)

@@ -7,6 +7,14 @@ import * as FileSystem from 'expo-file-system';
 import { Asset } from 'expo-asset';
 import AddMedicine from './AddMedicine';
 import GenerateQRCode from './GenerateQRCode';
+import AuthScreen from './AuthScreen';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+
+const API_URL = Platform.select({
+  ios: "http://localhost:7071/api",
+  android: "http://192.168.0.185:7071/api",
+});
 
 async function readAsStringAsync(fileUri) {
   if (Platform.OS === 'web') {
@@ -43,37 +51,55 @@ function HomeScreen({ navigation }) {
   const [status, setStatus] = useState(null);
   const [markers, setMarkers] = useState([]);
   const [loading, setLoading] = useState(false);
-  const url = Platform.select({
-    ios: "http://localhost:7071/api",
-    android: "http://192.168.1.225:7071/api",
-  });
 
-  const registerStore = async () => {
-    setLoading(true);
-    const store = {
-      storeName: "MyTestStore",
-      email: "newpharmacy@example.com",
-      contactNumber: "123-456-7890",
-      latitude: 35.012071169113796,
-      longitude: 34.77936602696631
-    };
-
+  // Helper function to make authenticated API requests with token refresh logic
+  const validateToken = async (token) => {
     try {
-      const response = await fetch(url + "/RegisterStore", {
+      const response = await fetch(`${API_URL}/ValidateToken`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(store)
+          'Authorization': `Bearer ${token}`
+        }
       });
-      const text = await response.text();
-      setStatus(text);
+      return response.ok;
     } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
+      console.error("Error validating token:", error);
+      return false;
     }
   };
+
+  const makeAuthenticatedRequest = async (url, options) => {
+    try {
+      let token = await AsyncStorage.getItem('access_token');
+      if (!token) {
+        setStatus("No access token found. Please log in.");
+        navigation.navigate('Auth');
+        return null;
+      }
+
+      const tokenIsValid = await validateToken(token);
+      if (!tokenIsValid) {
+        setStatus("Token expired. Please log in again.");
+        navigation.navigate('Auth');
+        return null;
+      }
+
+      const response = await fetch(url, {
+        ...options,
+        headers: {
+          ...options.headers,
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      return response;
+    } catch (error) {
+      console.error("Error making authenticated request:", error);
+      setStatus("An error occurred while making the request.");
+      return null;
+    }
+  };
+
 
   const sendImage = async () => {
     setLoading(true);
@@ -82,23 +108,32 @@ function HomeScreen({ navigation }) {
       await asset.downloadAsync();
       const uri = asset.localUri || asset.uri;
       const base64Img = await readAsStringAsync(uri);
-      const response = await fetch(url + "/LocateMedicine", {
+
+      const response = await makeAuthenticatedRequest(`${API_URL}/LocateMedicine`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ imageData: base64Img, imageName: 'medicineSample.jpg' })
       });
+
+      if (!response) return; // Exit if the request failed
+
       const data = await response.json();
-      setMarkers(data.stores.map(store => ({
-        latitude: parseFloat(store.Latitude),
-        longitude: parseFloat(store.Longitude),
-        title: store.StoreName,
-        description: store.Email
-      })));
-      setStatus("Stores found and markers updated" + JSON.stringify(data));
+      if (response.ok) {
+        setMarkers(data.stores.map(store => ({
+          latitude: parseFloat(store.Latitude),
+          longitude: parseFloat(store.Longitude),
+          title: store.StoreName,
+          description: store.Email,
+        })));
+        setStatus("Stores found and markers updated");
+      } else {
+        setStatus(`Failed to locate medicine: ${data.error}`);
+      }
     } catch (error) {
       console.error(error);
+      setStatus("An error occurred while sending the image.");
     } finally {
       setLoading(false);
     }
@@ -110,15 +145,17 @@ function HomeScreen({ navigation }) {
       <View style={styles.buttonContainer}>
         <Button title="Add Medicine" onPress={() => navigation.navigate('AddMedicine')} disabled={loading} />
         <Button title="Generate QR Code" onPress={() => navigation.navigate('GenerateQRCode')} disabled={loading} />
-        <Button title="Register Store" onPress={registerStore} disabled={loading} />
         <Button title="Send Image" onPress={sendImage} disabled={loading} />
       </View>
-      <MapView style={styles.map} initialRegion={{
+      <MapView
+        style={styles.map}
+        initialRegion={{
           latitude: 32.012071169113796,
           longitude: 34.77936602696631,
           latitudeDelta: 0.0922,
           longitudeDelta: 0.0421,
-        }}>
+        }}
+      >
         {markers.map((marker, index) => (
           <Marker
             key={index}
@@ -143,6 +180,7 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator>
+        <Stack.Screen name="Auth" component={AuthScreen} />
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="AddMedicine" component={AddMedicine} />
         <Stack.Screen name="GenerateQRCode" component={GenerateQRCode} />
@@ -168,9 +206,6 @@ const styles = StyleSheet.create({
   buttonContainer: {
     width: '80%',
     marginBottom: 20,
-  },
-  buttonWrapper: {
-    marginVertical: 10,
   },
   map: {
     width: '100%',

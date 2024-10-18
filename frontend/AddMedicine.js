@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, Button, Platform, ActivityIndicator, ScrollView } from 'react-native';
 import { BarCodeScanner } from 'expo-barcode-scanner';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 export default function AddMedicine({ navigation }) {
   const [status, setStatus] = useState(null);
@@ -14,10 +16,26 @@ export default function AddMedicine({ navigation }) {
     android: "http://192.168.1.225:7071/api",
   });
 
+  const checkTokenStorage = async () => {
+    try {
+      const token = await AsyncStorage.getItem('access_token');
+      if (token !== null) {
+        console.log('Stored token:', token);
+      } else {
+        console.log('No token found');
+      }
+    } catch (error) {
+      console.error('Error retrieving token:', error);
+    }
+  };
+
   useEffect(() => {
     (async () => {
       const { status } = await BarCodeScanner.requestPermissionsAsync();
       setHasPermission(status === 'granted');
+      
+      // Check token storage when the component mounts
+      await checkTokenStorage();
     })();
   }, []);
 
@@ -37,13 +55,30 @@ export default function AddMedicine({ navigation }) {
   const addMedicine = async (medicine) => {
     setLoading(true);
     try {
+      const token = await AsyncStorage.getItem('access_token'); // Retrieve the stored token
+      if (!token) {
+        console.error('No token found');
+        setStatus('No token found');
+        setLoading(false);
+        return;
+      }
       const response = await fetch(url + "/AddMedicine", {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` // Include the token in the Authorization header
         },
         body: JSON.stringify(medicine)
       });
+
+      if (response.status === 401) {
+        const data = await response.json();
+        if (data.action && data.action === 'redirect_login') {
+          navigation.navigate('Auth', { reason: 'token_expired' }); // Redirect to Auth with a reason
+            return;
+        }
+    }
+
       const text = await response.text();
       setStatus(text);
     } catch (error) {
