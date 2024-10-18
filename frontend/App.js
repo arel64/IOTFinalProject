@@ -45,7 +45,7 @@ function HomeScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
   const url = Platform.select({
     ios: "http://localhost:7071/api",
-    android: "http://192.168.1.136:7071/api",
+    android: "http://192.168.1.225:7071/api",
   });
 
   const registerStore = async () => {

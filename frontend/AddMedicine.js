@@ -11,7 +11,7 @@ export default function AddMedicine({ navigation }) {
 
   const url = Platform.select({
     ios: "http://localhost:7071/api",
-    android: "http://192.168.1.136:7071/api",
+    android: "http://192.168.1.225:7071/api",
   });
 
   useEffect(() => {
@@ -103,11 +103,16 @@ export default function AddMedicine({ navigation }) {
         <Button title="Back to Home" onPress={() => navigation.navigate('Home')} disabled={loading} />
       </View>
       {cameraVisible && !scanned && (
-        <BarCodeScanner
-          onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
-          style={StyleSheet.absoluteFillObject}
-          barCodeTypes={[BarCodeScanner.Constants.BarCodeType.qr]}
-        />
+        <View style={styles.cameraContainer}>
+          <BarCodeScanner
+            onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
+            style={StyleSheet.absoluteFillObject}
+            barCodeTypes={[BarCodeScanner.Constants.BarCodeType.qr]}
+          />
+          <View style={styles.boundingBoxContainer}>
+            <View style={styles.boundingBox} />
+          </View>
+        </View>
       )}
       {loading && (
         <View style={styles.loadingOverlay}>
@@ -136,13 +141,21 @@ const styles = StyleSheet.create({
     width: '80%',
     marginBottom: 20,
   },
-  buttonWrapper: {
-    marginVertical: 10,
-  },
-  map: {
+  cameraContainer: {
+    position: 'relative',
     width: '100%',
     height: 300,
-    marginBottom: 20,
+  },
+  boundingBoxContainer: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  boundingBox: {
+    width: 200,
+    height: 200,
+    borderWidth: 2,
+    borderColor: 'red',
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
