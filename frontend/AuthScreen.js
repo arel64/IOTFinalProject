@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React , { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TextInput, Button, ActivityIndicator, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const API_URL = Platform.select({
   ios: "http://localhost:7071/api",
-  android: "http://192.168.0.185:7071/api",
+  android: "http://192.168.1.226:7071/api",
 });
 
 function AuthScreen({ navigation, route }) {
@@ -27,16 +27,8 @@ useEffect(() => {
   }
 }, [route.params?.reason]);
 
-  const registerStore = async () => {
+  const registerStore = async (storeData) => {
     setLoading(true);
-    const storeData = {
-      storeName,
-      email,
-      contactNumber,
-      latitude,
-      longitude,
-      password
-    };
 
     try {
       const response = await fetch(`${API_URL}/RegisterStore`, {
@@ -46,24 +38,25 @@ useEffect(() => {
         },
         body: JSON.stringify(storeData)
       });
-
-      const data = await response.json();
+      
       if (response.ok) {
+        const data = await response.json();  
         await AsyncStorage.setItem('access_token', data.token); // Store the JWT token
         setStatus("Store registered successfully!");
         navigation.navigate('Home');
       } else {
-        setStatus(`Registration failed: ${data.error}`);
+        const errorMessage = (await response.text()).toString();
+        setStatus(`Registration failed: ${errorMessage}`);
       }
     } catch (error) {
       console.error(error);
-      setStatus("An error occurred during registration.");
+      setStatus(`An error occurred during registration. ${error}`);
     } finally {
       setLoading(false);
     }
   };
 
-  const login = async () => {
+  const login = async ({ email, password }) => {
     setLoading(true);
     try {
       const response = await fetch(`${API_URL}/Login`, {
@@ -88,6 +81,26 @@ useEffect(() => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const debugRegisterStore = () => {
+    const debugStoreData = {
+      storeName: 'MyTestStore',
+      email: 'newpharmacy1@example.com',
+      contactNumber: '123-456-7890',
+      latitude: '35.012071169113796',
+      longitude: '34.77936602696631',
+      password: 'testpassword'
+    };
+    registerStore(debugStoreData);
+  };
+
+  const debugLoginStore = () => {
+    const debugLoginData = {
+      email: 'newpharmacy1@example.com',
+      password: 'testpassword'
+    };
+    login(debugLoginData);
   };
 
   return (
@@ -140,12 +153,22 @@ useEffect(() => {
       />
       <Button
         title={isRegistering ? "Register" : "Login"}
-        onPress={isRegistering ? registerStore : login}
+        onPress={isRegistering ? () => registerStore({ storeName, email, contactNumber, latitude, longitude, password }) : () => login({ email, password })}
         disabled={loading}
       />
       <Button
         title={isRegistering ? "Switch to Login" : "Switch to Register"}
         onPress={() => setIsRegistering(!isRegistering)}
+        disabled={loading}
+      />
+      <Button
+        title="DEBUG: Register Store"
+        onPress={debugRegisterStore}
+        disabled={loading}
+      />
+      <Button
+        title="DEBUG: Login Store"
+        onPress={debugLoginStore}
         disabled={loading}
       />
       {loading && <ActivityIndicator size="large" color="#0000ff" />}

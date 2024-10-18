@@ -1,6 +1,6 @@
 import azure.functions as func
 from dataclasses import dataclass
-from schemaUtils import BaseEntity, getMyStoreName, writeEntityToTable
+from schemaUtils import BaseEntity, writeEntityToTable
 from azure.data.tables import TableClient,TableEntity,UpdateMode
 
 @dataclass
@@ -16,7 +16,7 @@ class Medicine(BaseEntity):
     
 class MedicineRequestParser:
     @staticmethod
-    def parse(req: func.HttpRequest) -> Medicine:
+    def parse(req: func.HttpRequest,storeName: str) -> Medicine:
         json = req.get_json()
         medicine_name : str = json.get('medicineName')
         manufacturer : str= json.get('manufacturer')
@@ -24,7 +24,7 @@ class MedicineRequestParser:
         batch_number : str = json.get('batchNumber')
         price = json.get('price')
         price = float(price) if price else 0
-        storeName = getMyStoreName(req)
+        storeName = storeName
         return Medicine(
             MedicineNamePretty=medicine_name,
             MedicineName=medicine_name.lower(),
@@ -48,9 +48,8 @@ class MedicineEntityParser:
             Quantity=entity.get('Quantity')# type: ignore
         )
 
-def insertMedicineToInventory(medicine : Medicine, table : TableClient, req : func.HttpRequest) -> None:
-    myStoreName = getMyStoreName(req)
-    partition_key = f"{myStoreName}_{medicine.MedicineName}_{medicine.BatchNumber}".lower()
+def insertMedicineToInventory(medicine : Medicine, table : TableClient, storeName : str) -> None:
+    partition_key = f"{storeName}_{medicine.MedicineName}_{medicine.BatchNumber}".lower()
     entities = table.query_entities(f"PartitionKey eq '{partition_key}'") # type: ignore
     entity_list = list(entities)
     if entity_list:

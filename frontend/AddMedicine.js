@@ -13,7 +13,7 @@ export default function AddMedicine({ navigation }) {
 
   const url = Platform.select({
     ios: "http://localhost:7071/api",
-    android: "http://192.168.1.225:7071/api",
+    android: "http://192.168.1.226:7071/api",
   });
 
   const checkTokenStorage = async () => {

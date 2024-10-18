@@ -5,7 +5,6 @@ import azure.functions as func
 from dataclasses import dataclass
 from schemaUtils import BaseEntity, createTableIfNotExists, getStoresTableName, writeEntityToTable
 from azure.data.tables import TableEntity
-from TokenUtils import createJwt, storeToken
 
 @dataclass
 class Store(BaseEntity):
@@ -80,7 +79,7 @@ def registerStore(store : Store) -> dict:
         return {
             'message': f"Store {store.StoreName} registered successfully",
             'token': token
-            }
+        }
         
 def getStoreEntity(storeName: str) -> Optional[TableEntity]:
     _,table_client = createTableIfNotExists(getStoresTableName())
