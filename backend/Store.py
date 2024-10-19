@@ -29,8 +29,6 @@ class StoreRequestParser:
         latitude = json.get('latitude')
         longitude = json.get('longitude')
         password = json.get('password')
-        
-        #Validate Email format
         email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
         if not re.match(email_regex, email):
             raise ValueError("Invalid email format")
@@ -52,7 +50,8 @@ class StoreEntityParser:
             Email=entity.get('Email'), # type: ignore
             ContactNumber=entity.get('ContactNumber'), # type: ignore
             Latitude=entity.get('Latitude'), # type: ignore
-            Longitude=entity.get('Longitude') # type: ignore
+            Longitude=entity.get('Longitude'), # type: ignore
+            Password=entity.get('Password') # type: ignore
         )    
 
 

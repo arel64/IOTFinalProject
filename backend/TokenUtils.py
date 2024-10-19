@@ -35,14 +35,9 @@ class TokenCredentials():
         return token
     @staticmethod
     def _decode(token: str) -> dict:
-        try:
-            decoded = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-            return decoded
-        except jwt.ExpiredSignatureError:
-            logging.info("Token has expired")
-            raise jwt.ExpiredSignatureError("Token has expired")
-        except jwt.InvalidTokenError:
-            raise ValueError("Invalid token")
+        decoded = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return decoded
+     
     @staticmethod
     def _storeToken(store_name: str, token: str):
         storeUid = Store.uidFromName(store_name)

@@ -18,7 +18,6 @@ function AuthScreen({ navigation, route }) {
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(false);
 
-// Check for reason parameter on mount
 useEffect(() => {
   if (route.params?.reason === 'token_expired') {
     setStatus('Your session has expired. Please log in again.');
@@ -26,18 +25,21 @@ useEffect(() => {
     setStatus('No token found. Please log in.');
   }
 }, [route.params?.reason]);
-
-  const registerStore = async (storeData) => {
+  
+  async function registerStore(storeData) {
+    return await fetch(`${API_URL}/RegisterStore`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(storeData)
+    });
+  }
+  const registerStoreAndLogin = async (storeData) => {
     setLoading(true);
 
     try {
-      const response = await fetch(`${API_URL}/RegisterStore`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(storeData)
-      });
+      const response = await registerStore(storeData);
       
       if (response.ok) {
         const data = await response.json();  
@@ -69,7 +71,7 @@ useEffect(() => {
 
       const data = await response.json();
       if (response.ok) {
-        await AsyncStorage.setItem('access_token', data.token); // Store the JWT token
+        await AsyncStorage.setItem('access_token', data.token); 
         setStatus("Login successful!");
         navigation.navigate('Home');
       } else {
@@ -83,16 +85,34 @@ useEffect(() => {
     }
   };
 
-  const debugRegisterStore = () => {
+  const debugRegisterStores = () => {
     const debugStoreData = {
-      storeName: 'MyTestStore',
+      storeName: 'Super Pharm Rishon',
       email: 'newpharmacy1@example.com',
       contactNumber: '123-456-7890',
-      latitude: '35.012071169113796',
-      longitude: '34.77936602696631',
+      latitude: '31.99010628788995', 
+      longitude: '34.77442841049924',
       password: 'testpassword'
     };
-    registerStore(debugStoreData);
+    const debugStoreData1 = {
+      storeName: 'Super Pharm Holon',
+      email: 'newpharmacy2@example.com',
+      contactNumber: '987-654-3210',
+      latitude: '32.01235981694784', 
+      longitude: '34.77987582094045',
+      password: 'testpassword123'
+    };
+    const debugStoreData2 = {
+      storeName: 'Supher Pharm Tel Aviv',
+      email: 'samplepharmacy@example.com',
+      contactNumber: '555-123-4567',
+      latitude: '32.06284224869756', 
+      longitude: '34.775723690405066',
+      password: 'securepassword'
+    };
+    registerStore(debugStoreData1)
+    registerStore(debugStoreData2)
+    registerStoreAndLogin(debugStoreData);
   };
 
   const debugLoginStore = () => {
@@ -153,7 +173,7 @@ useEffect(() => {
       />
       <Button
         title={isRegistering ? "Register" : "Login"}
-        onPress={isRegistering ? () => registerStore({ storeName, email, contactNumber, latitude, longitude, password }) : () => login({ email, password })}
+        onPress={isRegistering ? () => registerStoreAndLogin({ storeName, email, contactNumber, latitude, longitude, password }) : () => login({ email, password })}
         disabled={loading}
       />
       <Button
@@ -163,7 +183,7 @@ useEffect(() => {
       />
       <Button
         title="DEBUG: Register Store"
-        onPress={debugRegisterStore}
+        onPress={debugRegisterStores}
         disabled={loading}
       />
       <Button
@@ -175,6 +195,7 @@ useEffect(() => {
       <Text style={styles.statusText}>{status}</Text>
     </View>
   );
+
 }
 
 const styles = StyleSheet.create({
