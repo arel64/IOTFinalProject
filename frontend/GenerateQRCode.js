@@ -102,7 +102,7 @@ export default function GenerateQRCode({ navigation }) {
         </View>
       )}
       <Button title="Print QR Code" onPress={printQRCode} />
-      <Button title="Back to Home" onPress={() => navigation.navigate('Home')} />
+      <Button title="Back" onPress={() => navigation.navigate('PharmacistDashboard')} />
     </View>
   );
 }

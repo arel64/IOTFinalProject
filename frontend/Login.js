@@ -17,7 +17,7 @@ const LoginScreen = ({ navigation }) => {
       if (response.ok) {
         await AsyncStorage.setItem('access_token', data.token);
         setStatus("Login successful!");
-        navigation.navigate('Home');
+        navigation.navigate('PharmacistDashboard');
       } else {
         setStatus(`Login failed: ${data.error}`);
       }

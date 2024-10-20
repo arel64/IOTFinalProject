@@ -9,6 +9,7 @@ import Register from './Register'
 import CheckoutMedicine from './CheckoutMedicine';
 import HomeScreen from './HomeScreen';
 import FindMedicine from './FindMedicine';
+import PharmacistDashboard from './PharmacistDashboard';
 
 
 const Stack = createStackNavigator();
@@ -24,6 +25,7 @@ export default function App() {
         <Stack.Screen name="GenerateQRCode" component={GenerateQRCode} />
         <Stack.Screen name="CheckoutMedicine" component={CheckoutMedicine} />
         <Stack.Screen name="FindMedicine" component={FindMedicine} />
+        <Stack.Screen name="PharmacistDashboard" component={PharmacistDashboard} />
       </Stack.Navigator>
     </NavigationContainer>
   );

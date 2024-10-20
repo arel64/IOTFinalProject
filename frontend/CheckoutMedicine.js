@@ -95,7 +95,7 @@ export default function CheckoutMedicine({ navigation }) {
       <View style={styles.buttonContainer}>
         <Button title="DEBUG Checkout Hardcoded Medicine" onPress={checkoutHardcodedMedicines} disabled={loading} />
         <Button title="Scan QR Code" onPress={() => { setScanned(false); setCameraVisible(true); }} disabled={loading} />
-        <Button title="Back to Home" onPress={() => navigation.navigate('Home')} disabled={loading} />
+        <Button title="Back" onPress={() => navigation.navigate('PharmacistDashboard')} disabled={loading} />
       </View>
       {cameraVisible && !scanned && (
         <View style={styles.cameraContainer}>

@@ -1,18 +1,47 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, View, Button, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, Button, ScrollView, ActivityIndicator } from 'react-native';
+import { checkTokenStorage } from './TokenUtils';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 function HomeScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
+  
+  const handlePharmacistPress = async () => {
+    setLoading(true);
+    const isAuthenticated = await checkTokenStorage(navigation);
+    setLoading(false);
+
+    if (isAuthenticated) {
+      navigation.navigate('PharmacistDashboard');
+    }
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.statusText}>Welcome to the Medicine Finder App</Text>
       <View style={styles.buttonContainer}>
-        <Button title="Add Medicine" onPress={() => navigation.navigate('AddMedicine')} disabled={loading} />
-        <Button title="Generate QR Code" onPress={() => navigation.navigate('GenerateQRCode')} disabled={loading} />
-        <Button title="Checkout Medicine" onPress={() => navigation.navigate('CheckoutMedicine')} disabled={loading} />
-        <Button title="Find Medicine" onPress={() => navigation.navigate('FindMedicine')} disabled={loading} />
+        <Button 
+          title="I'm a Client" 
+          onPress={() => navigation.navigate('FindMedicine')} 
+        />
+        <Button 
+          title="I'm a Pharmacist" 
+          onPress={handlePharmacistPress} 
+          disabled={loading} 
+        />
+        <Button 
+          title="Clear Tokens (Debug)" 
+          onPress={async () => {
+            await AsyncStorage.clear(); 
+            console.log('All tokens cleared from AsyncStorage');
+            alert('Tokens cleared!');
+          }} 
+        />
       </View>
+      {loading && (
+        <ActivityIndicator size="large" color="#0000ff" />
+      )}
     </ScrollView>
   );
 }
