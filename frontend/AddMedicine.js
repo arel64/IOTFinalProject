@@ -1,41 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, Button, Platform, ActivityIndicator, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, Button, ActivityIndicator, ScrollView } from 'react-native';
 import { BarCodeScanner } from 'expo-barcode-scanner';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-
+import { checkTokenStorage } from './TokenUtils';
+import { makeAuthenticatedRequest } from './CommunicationUtils';
 export default function AddMedicine({ navigation }) {
   const [status, setStatus] = useState(null);
   const [scanned, setScanned] = useState(false);
   const [cameraVisible, setCameraVisible] = useState(false);
   const [hasPermission, setHasPermission] = useState(null);
-  const [loading, setLoading] = useState(false); // Loading state
-
-  const url = Platform.select({
-    ios: "http://localhost:7071/api",
-    android: "http://192.168.1.226:7071/api",
-  });
-
-  const checkTokenStorage = async () => {
-    try {
-      const token = await AsyncStorage.getItem('access_token');
-      if (token !== null) {
-        console.log('Stored token:', token);
-      } else {
-        console.log('No token found');
-      }
-    } catch (error) {
-      console.error('Error retrieving token:', error);
-    }
-  };
+  const [loading, setLoading] = useState(false); 
 
   useEffect(() => {
     (async () => {
       const { status } = await BarCodeScanner.requestPermissionsAsync();
       setHasPermission(status === 'granted');
-      
-      // Check token storage when the component mounts
-      await checkTokenStorage();
+      await checkTokenStorage(navigation);
     })();
   }, []);
 
@@ -55,30 +34,10 @@ export default function AddMedicine({ navigation }) {
   const addMedicine = async (medicine) => {
     setLoading(true);
     try {
-      const token = await AsyncStorage.getItem('access_token'); // Retrieve the stored token
-      if (!token) {
-        console.error('No token found');
-        setStatus('No token found');
-        setLoading(false);
-        return;
-      }
-      const response = await fetch(url + "/AddMedicine", {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}` // Include the token in the Authorization header
-        },
-        body: JSON.stringify(medicine)
-      });
-
-      if (response.status === 401) {
-        const data = await response.json();
-        if (data.action && data.action === 'redirect_login') {
-          navigation.navigate('Auth', { reason: 'token_expired' }); // Redirect to Auth with a reason
-            return;
-        }
-    }
-
+      const response = await makeAuthenticatedRequest('AddMedicine', JSON.stringify(medicine),navigation,setStatus);
+      if (!response)
+        setStatus(null);  
+      
       const text = await response.text();
       setStatus(text);
     } catch (error) {

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, Button, Platform, ActivityIndicator, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, Button, ActivityIndicator, ScrollView } from 'react-native';
 import { BarCodeScanner } from 'expo-barcode-scanner';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { checkTokenStorage } from './TokenUtils';
+import { makeAuthenticatedRequest } from './CommunicationUtils';
 
 export default function CheckoutMedicine({ navigation }) {
   const [status, setStatus] = useState(null);
@@ -10,29 +11,11 @@ export default function CheckoutMedicine({ navigation }) {
   const [hasPermission, setHasPermission] = useState(null);
   const [loading, setLoading] = useState(false); 
 
-  const url = Platform.select({
-    ios: "http://localhost:7071/api",
-    android: "http://192.168.1.226:7071/api",
-  });
-
-  const checkTokenStorage = async () => {
-    try {
-      const token = await AsyncStorage.getItem('access_token');
-      if (token !== null) {
-        console.log('Stored token:', token);
-      } else {
-        console.log('No token found');
-      }
-    } catch (error) {
-      console.error('Error retrieving token:', error);
-    }
-  };
-
   useEffect(() => {
     (async () => {
       const { status } = await BarCodeScanner.requestPermissionsAsync();
       setHasPermission(status === 'granted');
-      await checkTokenStorage();
+      await checkTokenStorage(navigation);
     })();
   }, []);
 
@@ -52,30 +35,9 @@ export default function CheckoutMedicine({ navigation }) {
   const checkoutMedicine = async (medicine) => {
     setLoading(true);
     try {
-      const token = await AsyncStorage.getItem('access_token'); 
-      if (!token) {
-        console.error('No token found');
-        setStatus('No token found');
-        setLoading(false);
-        return;
-      }
-      const response = await fetch(url + "/CheckoutMedicine", {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(medicine)
-      });
-
-      if (response.status === 401) {
-        const data = await response.json();
-        if (data.action && data.action === 'redirect_login') {
-          navigation.navigate('Auth', { reason: 'token_expired' });
-          return;
-        }
-      }
-
+      const response = await makeAuthenticatedRequest('CheckoutMedicine',JSON.stringify(medicine),navigation,setStatus)
+      if (!response)
+        setStatus(null);  
       const text = await response.text();
       setStatus(text);
     } catch (error) {
@@ -85,7 +47,7 @@ export default function CheckoutMedicine({ navigation }) {
     }
   };
 
-  const addHardcodedMedicines = () => {
+  const checkoutHardcodedMedicines = () => {
     const medicines = [
       {
         medicineName: 'Aspirin',
@@ -131,7 +93,7 @@ export default function CheckoutMedicine({ navigation }) {
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.statusText}>Status: {status}</Text>
       <View style={styles.buttonContainer}>
-        <Button title="DEBUG Checkout Hardcoded Medicine" onPress={addHardcodedMedicines} disabled={loading} />
+        <Button title="DEBUG Checkout Hardcoded Medicine" onPress={checkoutHardcodedMedicines} disabled={loading} />
         <Button title="Scan QR Code" onPress={() => { setScanned(false); setCameraVisible(true); }} disabled={loading} />
         <Button title="Back to Home" onPress={() => navigation.navigate('Home')} disabled={loading} />
       </View>

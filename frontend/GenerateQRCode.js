@@ -1,9 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { StyleSheet, Text, View, TextInput, Button, Alert } from 'react-native';
 import SvgQRCode from 'react-native-qrcode-svg';
 import * as Print from 'expo-print';
 import { captureRef } from 'react-native-view-shot';
 import * as FileSystem from 'expo-file-system';
+import { checkTokenStorage } from './TokenUtils';
 
 export default function GenerateQRCode({ navigation }) {
   const [medicineName, setMedicineName] = useState('Aspirin');
@@ -13,7 +14,11 @@ export default function GenerateQRCode({ navigation }) {
   const [price, setPrice] = useState('4.99');
   const [qrData, setQrData] = useState(null);
   const qrRef = useRef(null);
-
+  useEffect(() => {
+    (async () => {
+      await checkTokenStorage(navigation);
+    })();
+  }, []);
   const generateQRCode = () => {
     const medicine = {
       medicineName,
