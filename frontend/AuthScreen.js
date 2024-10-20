@@ -1,6 +1,7 @@
 import React , { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TextInput, Button, ActivityIndicator, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import MapView, { Marker } from 'react-native-maps'; 
 
 const API_URL = Platform.select({
   ios: "http://localhost:7071/api",
@@ -12,20 +13,20 @@ function AuthScreen({ navigation, route }) {
   const [storeName, setStoreName] = useState('');
   const [email, setEmail] = useState('');
   const [contactNumber, setContactNumber] = useState('');
-  const [latitude, setLatitude] = useState('');
-  const [longitude, setLongitude] = useState('');
+  const [latitude, setLatitude] = useState(31.99010628788995); 
+  const [longitude, setLongitude] = useState(34.77442841049924); 
   const [password, setPassword] = useState('');
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(false);
 
-useEffect(() => {
-  if (route.params?.reason === 'token_expired') {
-    setStatus('Your session has expired. Please log in again.');
-  } else if (route.params?.reason === 'missing_token') {
-    setStatus('No token found. Please log in.');
-  }
-}, [route.params?.reason]);
-  
+  useEffect(() => {
+    if (route.params?.reason === 'token_expired') {
+      setStatus('Your session has expired. Please log in again.');
+    } else if (route.params?.reason === 'missing_token') {
+      setStatus('No token found. Please log in.');
+    }
+  }, [route.params?.reason]);
+
   async function registerStore(storeData) {
     return await fetch(`${API_URL}/RegisterStore`, {
       method: 'POST',
@@ -35,6 +36,7 @@ useEffect(() => {
       body: JSON.stringify(storeData)
     });
   }
+
   const registerStoreAndLogin = async (storeData) => {
     setLoading(true);
 
@@ -43,7 +45,7 @@ useEffect(() => {
       
       if (response.ok) {
         const data = await response.json();  
-        await AsyncStorage.setItem('access_token', data.token); // Store the JWT token
+        await AsyncStorage.setItem('access_token', data.token); 
         setStatus("Store registered successfully!");
         navigation.navigate('Home');
       } else {
@@ -141,20 +143,31 @@ useEffect(() => {
             onChangeText={setContactNumber}
             keyboardType="phone-pad"
           />
-          <TextInput
-            style={styles.input}
-            placeholder="Latitude"
-            value={latitude}
-            onChangeText={setLatitude}
-            keyboardType="numeric"
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Longitude"
-            value={longitude}
-            onChangeText={setLongitude}
-            keyboardType="numeric"
-          />
+          <MapView
+            style={styles.map} 
+            initialRegion={{
+              latitude: latitude,
+              longitude: longitude,
+              latitudeDelta: 0.0922,
+              longitudeDelta: 0.0421,
+            }}
+            onPress={(e) => {
+              const coords = e.nativeEvent.coordinate;
+              setLatitude(coords.latitude);
+              setLongitude(coords.longitude);
+            }}
+          >
+            <Marker
+              coordinate={{ latitude: latitude, longitude: longitude }}
+              draggable
+              onDragEnd={(e) => {
+                const coords = e.nativeEvent.coordinate;
+                setLatitude(coords.latitude);
+                setLongitude(coords.longitude);
+                
+              }}
+            />
+          </MapView>
         </>
       )}
       <TextInput
@@ -195,7 +208,6 @@ useEffect(() => {
       <Text style={styles.statusText}>{status}</Text>
     </View>
   );
-
 }
 
 const styles = StyleSheet.create({
@@ -219,6 +231,11 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     paddingHorizontal: 10,
     width: '80%',
+  },
+  map: {
+    width: '100%',
+    height: 300,
+    marginBottom: 10,
   },
 });
 
