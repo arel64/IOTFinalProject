@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, Button, ActivityIndicator, ScrollView } from 'react-native';
+import { Text, View, ActivityIndicator, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { BarCodeScanner } from 'expo-barcode-scanner';
 import { checkTokenStorage } from './TokenUtils';
 import { makeAuthenticatedRequest } from './CommunicationUtils';
+import { globalStyles, cameraStyles } from './styles'; // Import global and camera styles
 
 export default function CheckoutMedicine({ navigation }) {
   const [status, setStatus] = useState(null);
   const [scanned, setScanned] = useState(false);
   const [cameraVisible, setCameraVisible] = useState(false);
   const [hasPermission, setHasPermission] = useState(null);
-  const [loading, setLoading] = useState(false); 
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -25,9 +26,11 @@ export default function CheckoutMedicine({ navigation }) {
 
   if (hasPermission === false) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.message}>We need your permission to show the camera</Text>
-        <Button onPress={() => BarCodeScanner.requestPermissionsAsync()} title="Grant Permission" />
+      <View style={globalStyles.container}>
+        <Text style={globalStyles.text}>We need your permission to show the camera</Text>
+        <TouchableOpacity style={globalStyles.button} onPress={() => BarCodeScanner.requestPermissionsAsync()}>
+          <Text style={globalStyles.buttonText}>Grant Permission</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -35,9 +38,7 @@ export default function CheckoutMedicine({ navigation }) {
   const checkoutMedicine = async (medicine) => {
     setLoading(true);
     try {
-      const response = await makeAuthenticatedRequest('CheckoutMedicine',JSON.stringify(medicine),navigation,setStatus)
-      if (!response)
-        setStatus(null);  
+      const response = await makeAuthenticatedRequest('CheckoutMedicine', JSON.stringify(medicine), navigation, setStatus);
       const text = await response.text();
       setStatus(text);
     } catch (error) {
@@ -54,26 +55,25 @@ export default function CheckoutMedicine({ navigation }) {
         manufacturer: 'XYZ Pharma',
         expiryDate: '2024-12-31',
         batchNumber: 'B12345',
-        price: 4.99
+        price: 4.99,
       },
       {
         medicineName: 'Combodex',
         manufacturer: 'Super Pharma',
         expiryDate: '2023-10-01',
         batchNumber: 'B67890',
-        price: 9.99
+        price: 9.99,
       },
       {
         medicineName: 'Paracetamol',
         manufacturer: 'LMN Pharma',
         expiryDate: '2025-05-15',
         batchNumber: 'C12345',
-        price: 3.50
-      }
+        price: 3.50,
+      },
     ];
 
-    const medicine = medicines[0]; 
-    checkoutMedicine(medicine);
+    checkoutMedicine(medicines[0]);
   };
 
   const handleBarCodeScanned = ({ type, data }) => {
@@ -90,76 +90,40 @@ export default function CheckoutMedicine({ navigation }) {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.statusText}>Status: {status}</Text>
-      <View style={styles.buttonContainer}>
-        <Button title="DEBUG Checkout Hardcoded Medicine" onPress={checkoutHardcodedMedicines} disabled={loading} />
-        <Button title="Scan QR Code" onPress={() => { setScanned(false); setCameraVisible(true); }} disabled={loading} />
-        <Button title="Back" onPress={() => navigation.navigate('PharmacistDashboard')} disabled={loading} />
+    <ScrollView contentContainerStyle={globalStyles.container}>
+      <Text style={globalStyles.text}>Status: {status}</Text>
+      <View style={globalStyles.buttonContainer}>
+        <TouchableOpacity style={globalStyles.button} onPress={checkoutHardcodedMedicines} disabled={loading}>
+          <Text style={globalStyles.buttonText}>DEBUG Checkout Hardcoded Medicine</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={globalStyles.button} onPress={() => { setScanned(false); setCameraVisible(true); }} disabled={loading}>
+          <Text style={globalStyles.buttonText}>Scan QR Code</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={globalStyles.button} onPress={() => navigation.navigate('PharmacistDashboard')} disabled={loading}>
+          <Text style={globalStyles.buttonText}>Back</Text>
+        </TouchableOpacity>
       </View>
+
       {cameraVisible && !scanned && (
-        <View style={styles.cameraContainer}>
+        <View style={cameraStyles.cameraContainer}>
           <BarCodeScanner
             onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
             style={StyleSheet.absoluteFillObject}
             barCodeTypes={[BarCodeScanner.Constants.BarCodeType.qr]}
           />
-          <View style={styles.boundingBoxContainer}>
-            <View style={styles.boundingBox} />
+          <View style={cameraStyles.boundingBoxContainer}>
+            <View style={cameraStyles.boundingBox} />
           </View>
         </View>
       )}
+
       {loading && (
-        <View style={styles.loadingOverlay}>
+        <View style={cameraStyles.loadingOverlay}>
           <ActivityIndicator size="large" color="#0000ff" />
         </View>
       )}
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    paddingVertical: 20,
-  },
-  statusText: {
-    fontSize: 18,
-    marginBottom: 20,
-    textAlign: 'center',
-    width: '80%',
-  },
-  buttonContainer: {
-    width: '80%',
-    marginBottom: 20,
-  },
-  cameraContainer: {
-    position: 'relative',
-    width: '100%',
-    height: 300,
-  },
-  boundingBoxContainer: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  boundingBox: {
-    width: 200,
-    height: 200,
-    borderWidth: 2,
-    borderColor: 'red',
-  },
-  loadingOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  message: {
-    textAlign: 'center',
-    margin: 10,
-  },
-});

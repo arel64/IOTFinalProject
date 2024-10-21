@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { StyleSheet, Text, View, TextInput, Button, Alert } from 'react-native';
+import { Text, View, TextInput, TouchableOpacity, Alert, ScrollView, StyleSheet } from 'react-native';
 import SvgQRCode from 'react-native-qrcode-svg';
 import * as Print from 'expo-print';
 import { captureRef } from 'react-native-view-shot';
 import * as FileSystem from 'expo-file-system';
 import { checkTokenStorage } from './TokenUtils';
+import { globalStyles } from './styles';
 
 export default function GenerateQRCode({ navigation }) {
   const [medicineName, setMedicineName] = useState('Aspirin');
@@ -14,18 +15,20 @@ export default function GenerateQRCode({ navigation }) {
   const [price, setPrice] = useState('4.99');
   const [qrData, setQrData] = useState(null);
   const qrRef = useRef(null);
+
   useEffect(() => {
     (async () => {
       await checkTokenStorage(navigation);
     })();
   }, []);
+
   const generateQRCode = () => {
     const medicine = {
       medicineName,
       manufacturer,
       expiryDate,
       batchNumber,
-      price: parseFloat(price)
+      price: parseFloat(price),
     };
     setQrData(JSON.stringify(medicine));
   };
@@ -33,13 +36,10 @@ export default function GenerateQRCode({ navigation }) {
   const printQRCode = async () => {
     if (qrData) {
       try {
-        const uri = await captureRef(qrRef, {
-          format: 'png',
-          quality: 1
-        });
+        const uri = await captureRef(qrRef, { format: 'png', quality: 1 });
 
         const base64 = await FileSystem.readAsStringAsync(uri, {
-          encoding: FileSystem.EncodingType.Base64
+          encoding: FileSystem.EncodingType.Base64,
         });
 
         const html = `
@@ -63,68 +63,61 @@ export default function GenerateQRCode({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.label}>Medicine Name</Text>
+    <ScrollView contentContainerStyle={globalStyles.container}>
+      <Text style={globalStyles.text}>Medicine Name</Text>
       <TextInput
-        style={styles.input}
+        style={globalStyles.input}
         value={medicineName}
         onChangeText={setMedicineName}
       />
-      <Text style={styles.label}>Manufacturer</Text>
+      <Text style={globalStyles.text}>Manufacturer</Text>
       <TextInput
-        style={styles.input}
+        style={globalStyles.input}
         value={manufacturer}
         onChangeText={setManufacturer}
       />
-      <Text style={styles.label}>Expiry Date</Text>
+      <Text style={globalStyles.text}>Expiry Date</Text>
       <TextInput
-        style={styles.input}
+        style={globalStyles.input}
         value={expiryDate}
         onChangeText={setExpiryDate}
       />
-      <Text style={styles.label}>Batch Number</Text>
+      <Text style={globalStyles.text}>Batch Number</Text>
       <TextInput
-        style={styles.input}
+        style={globalStyles.input}
         value={batchNumber}
         onChangeText={setBatchNumber}
       />
-      <Text style={styles.label}>Price</Text>
+      <Text style={globalStyles.text}>Price</Text>
       <TextInput
-        style={styles.input}
+        style={globalStyles.input}
         value={price}
         onChangeText={setPrice}
         keyboardType="numeric"
       />
-      <Button title="Generate QR Code" onPress={generateQRCode} />
+
+      <TouchableOpacity style={globalStyles.button} onPress={generateQRCode}>
+        <Text style={globalStyles.buttonText}>Generate QR Code</Text>
+      </TouchableOpacity>
+
       {qrData && (
         <View style={styles.qrContainer} collapsable={false} ref={qrRef}>
           <SvgQRCode value={qrData} size={200} />
         </View>
       )}
-      <Button title="Print QR Code" onPress={printQRCode} />
-      <Button title="Back" onPress={() => navigation.navigate('PharmacistDashboard')} />
-    </View>
+
+      <TouchableOpacity style={globalStyles.button} onPress={printQRCode}>
+        <Text style={globalStyles.buttonText}>Print QR Code</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={globalStyles.button} onPress={() => navigation.navigate('PharmacistDashboard')}>
+        <Text style={globalStyles.buttonText}>Back</Text>
+      </TouchableOpacity>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: 20,
-    backgroundColor: '#fff',
-  },
-  label: {
-    fontSize: 18,
-    marginBottom: 5,
-  },
-  input: {
-    height: 40,
-    borderColor: 'gray',
-    borderWidth: 1,
-    marginBottom: 15,
-    paddingHorizontal: 10,
-  },
   qrContainer: {
     marginTop: 20,
     alignItems: 'center',

@@ -1,46 +1,43 @@
 import React from 'react';
-import { StyleSheet, View, Button, ScrollView, Text } from 'react-native';
+import { View, ScrollView, Text, TouchableOpacity } from 'react-native';
+import { globalStyles } from './styles';
 
 function PharmacistDashboard({ navigation }) {
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.statusText}>Pharmacist Dashboard</Text>
+    <ScrollView contentContainerStyle={globalStyles.container}>
+      <Text style={globalStyles.heading}>Pharmacist Dashboard</Text>
+
       <View style={styles.buttonContainer}>
-        <Button 
-          title="Add Medicine" 
-          onPress={() => navigation.navigate('AddMedicine')} 
-        />
-        <Button 
-          title="Checkout Medicine" 
-          onPress={() => navigation.navigate('CheckoutMedicine')} 
-        />
-        <Button 
-          title="Generate QR Code" 
-          onPress={() => navigation.navigate('GenerateQRCode')} 
-        />
+        <TouchableOpacity 
+          style={globalStyles.button} 
+          onPress={() => navigation.navigate('AddMedicine')}
+        >
+          <Text style={globalStyles.buttonText}>Add Medicine</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={globalStyles.button} 
+          onPress={() => navigation.navigate('CheckoutMedicine')}
+        >
+          <Text style={globalStyles.buttonText}>Checkout Medicine</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={globalStyles.button} 
+          onPress={() => navigation.navigate('GenerateQRCode')}
+        >
+          <Text style={globalStyles.buttonText}>Generate QR Code</Text>
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    paddingVertical: 20,
-  },
-  statusText: {
-    fontSize: 18,
-    marginBottom: 20,
-    textAlign: 'center',
-    width: '80%',
-  },
+const styles = {
   buttonContainer: {
     width: '80%',
     marginBottom: 20,
   },
-});
+};
 
 export default PharmacistDashboard;
