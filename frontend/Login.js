@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { Text, View, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import { makeRequest } from './CommunicationUtils';
 import { globalStyles, CustomAlert, LoadingAlert } from './styles';
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
   const [alertTitle, setAlertTitle] = useState('');
@@ -47,43 +47,57 @@ const LoginScreen = ({ navigation }) => {
 
   return (
     <View style={globalStyles.container}>
-      <Text style={globalStyles.heading}>Login</Text>
+      <View style={globalStyles.inputContainer}>
+        <View style={globalStyles.inputIconContainer}>
+          <Icon name="email" size={24} color="#90A4AE" />
+        </View>
+        <TextInput
+          style={[globalStyles.input, globalStyles.inputWithIcon]}
+          placeholder="Email"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          placeholderTextColor="#90A4AE"
+        />
+      </View>
 
-      <TextInput
-        style={globalStyles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-      />
+      <View style={globalStyles.inputContainer}>
+        <View style={globalStyles.inputIconContainer}>
+          <Icon name="lock" size={24} color="#90A4AE" />
+        </View>
+        <TextInput
+          style={[globalStyles.input, globalStyles.inputWithIcon]}
+          placeholder="Password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          placeholderTextColor="#90A4AE"
+        />
+      </View>
 
-      <TextInput
-        style={globalStyles.input}
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
-
-      <TouchableOpacity 
-        style={globalStyles.button} 
-        onPress={() => login({ email, password })} 
+      <TouchableOpacity
+        style={globalStyles.button}
+        onPress={() => login({ email, password })}
         disabled={loading}
       >
-        <Text style={globalStyles.buttonText}>Login</Text>
+        {loading ? (
+          <ActivityIndicator size="small" color="#FFF" />
+        ) : (
+          <Text style={globalStyles.buttonText}>Login</Text>
+        )}
       </TouchableOpacity>
 
-      <TouchableOpacity 
-        style={globalStyles.button} 
-        onPress={() => navigation.navigate('Register')} 
+      <TouchableOpacity
+        style={globalStyles.button}
+        onPress={() => navigation.navigate('Register')}
         disabled={loading}
       >
-        <Text style={globalStyles.buttonText}>Go to Register</Text>
+        <Text style={globalStyles.buttonText}>New store? Sign-up</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity 
-        style={globalStyles.button} 
-        onPress={debugLoginStore} 
+      <TouchableOpacity
+        style={globalStyles.button}
+        onPress={debugLoginStore}
         disabled={loading}
       >
         <Text style={globalStyles.buttonText}>DEBUG: LOGIN</Text>

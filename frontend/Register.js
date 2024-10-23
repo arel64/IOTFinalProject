@@ -5,6 +5,7 @@ import MapView, { Marker } from 'react-native-maps';
 import { makeRequest } from './CommunicationUtils';
 import { globalStyles, mapStyles } from './styles';
 import AwesomeAlert from 'react-native-awesome-alerts';
+import HeaderIcon from './HeaderIcon'; // Import HeaderIcon
 
 const Register = ({ navigation }) => {
   const [storeName, setStoreName] = useState('');
@@ -53,7 +54,7 @@ const Register = ({ navigation }) => {
       contactNumber: '123-456-7890',
       latitude: '31.99010628788995',
       longitude: '34.77442841049924',
-      password: 'testpassword'
+      password: 'testpassword',
     };
     registerStoreAndLogin(debugStoreData);
   };
@@ -64,7 +65,7 @@ const Register = ({ navigation }) => {
     if (!email) missingFields.push('Email');
     if (!contactNumber) missingFields.push('Contact Number');
     if (!password) missingFields.push('Password');
-  
+
     if (missingFields.length > 0) {
       setAlertTitle('Missing Fields');
       setAlertMessage(`Please fill in the following required fields: ${missingFields.join(', ')}`);
@@ -76,18 +77,22 @@ const Register = ({ navigation }) => {
 
   return (
     <ScrollView contentContainerStyle={globalStyles.container}>
+      <View style={{ marginBottom: 200 }}>
+        <HeaderIcon />
+      </View>
+
       <Text style={globalStyles.heading}>Register Store</Text>
 
       <TextInput
         style={globalStyles.input}
-        placeholder="Store Name (requierd)"
+        placeholder="Store Name (required)"
         value={storeName}
         onChangeText={setStoreName}
       />
 
       <TextInput
         style={globalStyles.input}
-        placeholder="Contact Number (requierd)"
+        placeholder="Contact Number (required)"
         value={contactNumber}
         onChangeText={setContactNumber}
         keyboardType="phone-pad"
@@ -120,7 +125,7 @@ const Register = ({ navigation }) => {
 
       <TextInput
         style={globalStyles.input}
-        placeholder="Email (requierd)"
+        placeholder="Email (required)"
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
@@ -128,7 +133,7 @@ const Register = ({ navigation }) => {
 
       <TextInput
         style={globalStyles.input}
-        placeholder="Password (requierd)"
+        placeholder="Password (required)"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
@@ -136,7 +141,9 @@ const Register = ({ navigation }) => {
 
       <TouchableOpacity
         style={globalStyles.button}
-        onPress={() => registerStoreAndLogin({ storeName, email, contactNumber, latitude, longitude, password })}
+        onPress={() =>
+          registerStoreAndLogin({ storeName, email, contactNumber, latitude, longitude, password })
+        }
         disabled={loading}
       >
         <Text style={globalStyles.buttonText}>Register</Text>
@@ -150,11 +157,7 @@ const Register = ({ navigation }) => {
         <Text style={globalStyles.buttonText}>Go to Login</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity
-        style={globalStyles.button}
-        onPress={debugRegisterStores}
-        disabled={loading}
-      >
+      <TouchableOpacity style={globalStyles.button} onPress={debugRegisterStores} disabled={loading}>
         <Text style={globalStyles.buttonText}>DEBUG: Register stores</Text>
       </TouchableOpacity>
 

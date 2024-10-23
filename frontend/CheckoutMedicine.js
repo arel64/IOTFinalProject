@@ -6,6 +6,7 @@ import { makeAuthenticatedRequest } from './CommunicationUtils';
 import AwesomeAlert from 'react-native-awesome-alerts';
 import { globalStyles, cameraStyles } from './styles';
 import ScanQrCodeDesign from './ScanQrCodeDesign';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 export default function CheckoutMedicine({ navigation }) {
   const [cameraVisible, setCameraVisible] = useState(false);
@@ -14,6 +15,7 @@ export default function CheckoutMedicine({ navigation }) {
   const [showAlert, setShowAlert] = useState(false);
   const [alertTitle, setAlertTitle] = useState('');
   const [alertMessage, setAlertMessage] = useState('');
+  const [showCancelButton, setShowCancelButton] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -50,11 +52,13 @@ export default function CheckoutMedicine({ navigation }) {
   
       setAlertTitle('Success');
       setAlertMessage(text);
+      setShowCancelButton(false);
       setShowAlert(true);
     } catch (error) {
       console.error(error);
       setAlertTitle('Error');
       setAlertMessage('Failed to checkout medicine.');
+      setShowCancelButton(false);
       setShowAlert(true);
     } finally {
       setLoading(false);
@@ -98,6 +102,7 @@ const handleBarCodeScanned = ({ type, data }) => {
     console.error('Invalid QR code data:', error);
     setAlertTitle('Error');
     setAlertMessage('Invalid QR code data.');
+    setShowCancelButton(false);
     setShowAlert(true);
   }
 };
@@ -117,12 +122,14 @@ return (
         </TouchableOpacity>
 
         <TouchableOpacity style={globalStyles.button} onPress={() => setCameraVisible(true)} disabled={loading}>
-          <Text style={globalStyles.buttonText}>Scan QR Code</Text>
-        </TouchableOpacity>
+            <Icon name="qrcode-scan" size={24} color="white" />
+            <Text style={globalStyles.buttonText}>Scan QR Code</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity style={globalStyles.button} onPress={() => navigation.navigate('PharmacistDashboard')} disabled={loading}>
-          <Text style={globalStyles.buttonText}>Back</Text>
-        </TouchableOpacity>
+          <TouchableOpacity style={globalStyles.button} onPress={() => navigation.navigate('PharmacistDashboard')} disabled={loading}>
+            <Icon name="home" size={24} color="white" />
+            <Text style={globalStyles.buttonText}>Back</Text>
+          </TouchableOpacity>
       </View>
     )}
 

@@ -17,7 +17,7 @@ function HomeScreen({ navigation }) {
 
         <TouchableOpacity
           style={globalStyles.button}
-          onPress={() => navigation.navigate('PharmacistDashboard')}
+          onPress={() => navigation.navigate('Login')}
         >
           <Text style={globalStyles.buttonText}>I'm a Pharmacist</Text>
         </TouchableOpacity>

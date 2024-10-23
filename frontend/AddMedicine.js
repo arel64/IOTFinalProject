@@ -7,6 +7,7 @@ import { globalStyles, cameraStyles } from './styles';
 import AwesomeAlert from 'react-native-awesome-alerts';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import ScanQrCodeDesign from './ScanQrCodeDesign';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 
 export default function AddMedicine({ navigation }) {
@@ -143,51 +144,136 @@ export default function AddMedicine({ navigation }) {
 
   return (
     <ScrollView contentContainerStyle={globalStyles.container}>
-      {cameraVisible  ? (
-        <ScanQrCodeDesign 
-          onClose={() => setCameraVisible(false)} 
-          onBarCodeScanned={handleBarCodeScanned} 
+      {cameraVisible ? (
+        <ScanQrCodeDesign
+          onClose={() => setCameraVisible(false)}
+          onBarCodeScanned={handleBarCodeScanned}
         />
       ) : manualEntry ? (
         <>
-          <TextInput style={globalStyles.input} placeholder="Medicine Name (required)" value={medicineName} onChangeText={setMedicineName} />
-          <TextInput style={globalStyles.input} placeholder="Manufacturer (required)" value={manufacturer} onChangeText={setManufacturer} />
-          <TextInput style={globalStyles.input} placeholder="Expiry date (e.g., 2024-12-31) (required)" value={expiryDate} onChangeText={setExpiryDate}
-            onFocus={() => setShowDatePicker(true)}
-          />
-          {showDatePicker && (
-            <DateTimePicker value={new Date()} mode="date" display="default" onChange={onDateChange} />
-          )}
-          <TextInput style={globalStyles.input} placeholder="Batch Number (required)" value={batchNumber} onChangeText={setBatchNumber} />
-          <TextInput style={globalStyles.input} placeholder="Price" value={price} onChangeText={setPrice} keyboardType="numeric" />
+          <View style={globalStyles.inputContainer}>
+            <View style={globalStyles.inputIconContainer}>
+              <Icon name="pill" size={24} color="#90A4AE" />
+            </View>
+            <TextInput
+              style={[globalStyles.input, globalStyles.inputWithIcon]}
+              placeholder="Medicine Name (required)"
+              value={medicineName}
+              onChangeText={setMedicineName}
+              placeholderTextColor="#90A4AE"
+            />
+          </View>
+  
+          <View style={globalStyles.inputContainer}>
+            <View style={globalStyles.inputIconContainer}>
+              <Icon name="factory" size={24} color="#90A4AE" />
+            </View>
+            <TextInput
+              style={[globalStyles.input, globalStyles.inputWithIcon]}
+              placeholder="Manufacturer (required)"
+              value={manufacturer}
+              onChangeText={setManufacturer}
+              placeholderTextColor="#90A4AE"
+            />
+          </View>
+  
+          <View style={globalStyles.inputContainer}>
+            <View style={globalStyles.inputIconContainer}>
+              <Icon name="calendar" size={24} color="#90A4AE" />
+            </View>
+            <TextInput
+              style={[globalStyles.input, globalStyles.inputWithIcon]}
+              placeholder="Expiry date (YYYY-MM-DD) (required)"
+              value={expiryDate}
+              onChangeText={setExpiryDate}
+              onFocus={() => setShowDatePicker(true)}
+              placeholderTextColor="#90A4AE"
+            />
+            {showDatePicker && (
+              <DateTimePicker
+                value={new Date()}
+                mode="date"
+                display="default"
+                onChange={onDateChange}
+              />
+            )}
+          </View>
+  
+          <View style={globalStyles.inputContainer}>
+            <View style={globalStyles.inputIconContainer}>
+              <Icon name="barcode" size={24} color="#90A4AE" />
+            </View>
+            <TextInput
+              style={[globalStyles.input, globalStyles.inputWithIcon]}
+              placeholder="Batch Number (required)"
+              value={batchNumber}
+              onChangeText={setBatchNumber}
+              placeholderTextColor="#90A4AE"
+            />
+          </View>
+  
+          <View style={globalStyles.inputContainer}>
+            <View style={globalStyles.inputIconContainer}>
+              <Icon name="currency-usd" size={24} color="#90A4AE" />
+            </View>
+            <TextInput
+              style={[globalStyles.input, globalStyles.inputWithIcon]}
+              placeholder="Price"
+              value={price}
+              onChangeText={setPrice}
+              keyboardType="numeric"
+              placeholderTextColor="#90A4AE"
+            />
+          </View>
+  
           <TouchableOpacity style={globalStyles.button} onPress={handleManualSubmit}>
             <Text style={globalStyles.buttonText}>Submit</Text>
           </TouchableOpacity>
+  
           <TouchableOpacity style={globalStyles.button} onPress={() => setManualEntry(false)}>
             <Text style={globalStyles.buttonText}>Cancel</Text>
           </TouchableOpacity>
         </>
       ) : (
         <View style={globalStyles.buttonContainer}>
-          <TouchableOpacity style={globalStyles.button} onPress={addHardcodedMedicines} disabled={loading}>
+          <TouchableOpacity
+            style={globalStyles.button}
+            onPress={addHardcodedMedicines}
+            disabled={loading}
+          >
             <Text style={globalStyles.buttonText}>DEBUG Add Hardcoded Medicines</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={globalStyles.button} onPress={() => { setCameraVisible(true); }} disabled={loading}>
+  
+          <TouchableOpacity
+            style={globalStyles.button}
+            onPress={() => setCameraVisible(true)}
+            disabled={loading}
+          >
+            <Icon name="qrcode-scan" size={24} color="white" />
             <Text style={globalStyles.buttonText}>Scan QR Code</Text>
           </TouchableOpacity>
+  
           <TouchableOpacity style={globalStyles.button} onPress={() => setManualEntry(true)}>
             <Text style={globalStyles.buttonText}>Add Medicine Manually</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={globalStyles.button} onPress={() => navigation.navigate('PharmacistDashboard')} disabled={loading}>
+  
+          <TouchableOpacity
+            style={globalStyles.button}
+            onPress={() => navigation.navigate('PharmacistDashboard')}
+            disabled={loading}
+          >
+            <Icon name="home" size={24} color="white" />
             <Text style={globalStyles.buttonText}>Back</Text>
           </TouchableOpacity>
         </View>
       )}
+  
       {loading && (
         <View style={cameraStyles.loadingOverlay}>
           <ActivityIndicator size="large" color="#0000ff" />
         </View>
       )}
+  
       <AwesomeAlert
         show={showAlert}
         title={alertTitle}
@@ -208,5 +294,5 @@ export default function AddMedicine({ navigation }) {
         }}
       />
     </ScrollView>
-  );  
-}
+  );
+}  
