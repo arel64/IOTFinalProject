@@ -1,11 +1,23 @@
 import React from 'react';
 import { View, Image } from 'react-native';
-import { globalStyles } from './styles';
+import { StyleSheet } from 'react-native';
 
 const HeaderIcon = () => (
-  <View style={globalStyles.iconContainer}>
-    <Image source={require('./assets/icon_trans.png')} style={globalStyles.icon} />
+  <View style={styles.iconContainer}>
+    <Image source={require('./assets/icon_trans.png')} style={styles.icon} />
   </View>
 );
+
+const styles = StyleSheet.create({
+  iconContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  icon: {
+    width: 30,
+    height: 30,
+    resizeMode: 'contain',
+  },
+});
 
 export default HeaderIcon;

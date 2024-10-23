@@ -3,12 +3,10 @@ import { Text, View, ActivityIndicator, ScrollView, TextInput, TouchableOpacity 
 import { BarCodeScanner } from 'expo-barcode-scanner';
 import { checkTokenStorage } from './TokenUtils';
 import { makeAuthenticatedRequest } from './CommunicationUtils';
-import { globalStyles, cameraStyles } from './styles'; 
-import AwesomeAlert from 'react-native-awesome-alerts';
+import { globalStyles, cameraStyles, CustomAlert } from './styles'; 
 import DateTimePicker from '@react-native-community/datetimepicker';
 import ScanQrCodeDesign from './ScanQrCodeDesign';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-
 
 export default function AddMedicine({ navigation }) {
   const [cameraVisible, setCameraVisible] = useState(false);
@@ -69,11 +67,20 @@ export default function AddMedicine({ navigation }) {
       );
       const text = await response.text();
       setAlertTitle('Success');
-      setAlertMessage('Medicine added successfully!');
+      setAlertMessage(`Medicine added successfully!\n\n
+        Name: ${medicine.medicineName}\n
+        Manufacturer: ${medicine.manufacturer}\n
+        Expiry Date: ${medicine.expiryDate}\n
+        Batch Number: ${medicine.batchNumber}\n
+        Price: ${medicine.price}`);
       setShowCancelButton(false);
       setShowAlert(true);
     } catch (error) {
       console.error(error);
+      setAlertTitle('Error');
+      setAlertMessage('An error occurred while adding the medicine.');
+      setShowCancelButton(false);
+      setShowAlert(true);
     } finally {
       setLoading(false);
     }
@@ -92,10 +99,6 @@ export default function AddMedicine({ navigation }) {
     try {
       const medicine = JSON.parse(data);
       addMedicine(medicine);
-      setAlertTitle('Success');
-      setAlertMessage(`Medicine added: ${JSON.stringify(medicine)}`);
-      setShowCancelButton(false);
-      setShowAlert(true);
     } catch (error) {
       console.error('Invalid QR code data:', error);
       setAlertTitle('Error');
@@ -274,25 +277,22 @@ export default function AddMedicine({ navigation }) {
         </View>
       )}
   
-      <AwesomeAlert
-        show={showAlert}
-        title={alertTitle}
-        message={alertMessage}
-        showConfirmButton={true}
-        showCancelButton={showCancelButton}
-        confirmText={showCancelButton ? 'Yes' : 'OK'}
-        cancelText="Return"
-        confirmButtonColor="#4CAF50"
-        cancelButtonColor="#F44336"
-        onConfirmPressed={() => {
-          if (showCancelButton) resetForm();
-          setShowAlert(false);
-        }}
-        onCancelPressed={() => {
-          setManualEntry(false);
-          setShowAlert(false);
-        }}
-      />
+  <CustomAlert
+    show={showAlert}
+    title={alertTitle}
+    message={alertMessage}
+    onConfirm={() => {
+      setShowAlert(false);
+      setCameraVisible(false);
+    }}
+    onCancel={() => {
+      setManualEntry(false);
+      setShowAlert(false);
+    }}
+    showCancelButton={showCancelButton}
+    confirmText={showCancelButton ? 'Yes' : 'OK'}
+    cancelText="Return"
+    />
     </ScrollView>
   );
 }  

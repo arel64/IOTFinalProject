@@ -3,8 +3,7 @@ import { Text, View, ActivityIndicator, ScrollView, TouchableOpacity, StyleSheet
 import { BarCodeScanner } from 'expo-barcode-scanner';
 import { checkTokenStorage } from './TokenUtils';
 import { makeAuthenticatedRequest } from './CommunicationUtils';
-import AwesomeAlert from 'react-native-awesome-alerts';
-import { globalStyles, cameraStyles } from './styles';
+import { globalStyles, cameraStyles, CustomAlert } from './styles';
 import ScanQrCodeDesign from './ScanQrCodeDesign';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
@@ -139,15 +138,12 @@ return (
       </View>
     )}
 
-    <AwesomeAlert
-      show={showAlert}
-      title={alertTitle}
-      message={alertMessage}
-      showConfirmButton={true}
-      confirmText="OK"
-      confirmButtonColor="#4CAF50"
-      onConfirmPressed={() => setShowAlert(false)}
-    />
+  <CustomAlert
+    show={showAlert}
+    title={alertTitle}
+    message={alertMessage}
+    onConfirm={() => setShowAlert(false)}
+  />
   </ScrollView>
   );
 }

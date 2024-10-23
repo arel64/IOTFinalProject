@@ -3,9 +3,7 @@ import { Text, View, TextInput, TouchableOpacity, ActivityIndicator, ScrollView 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import MapView, { Marker } from 'react-native-maps';
 import { makeRequest } from './CommunicationUtils';
-import { globalStyles, mapStyles } from './styles';
-import AwesomeAlert from 'react-native-awesome-alerts';
-import HeaderIcon from './HeaderIcon'; // Import HeaderIcon
+import { globalStyles, mapStyles, CustomAlert } from './styles';
 
 const Register = ({ navigation }) => {
   const [storeName, setStoreName] = useState('');
@@ -18,6 +16,7 @@ const Register = ({ navigation }) => {
   const [showAlert, setShowAlert] = useState(false);
   const [alertTitle, setAlertTitle] = useState('');
   const [alertMessage, setAlertMessage] = useState('');
+  const [showMap, setShowMap] = useState(false);
 
   const registerStoreAndLogin = async (storeData) => {
     if (!validateForm()) return;
@@ -65,6 +64,7 @@ const Register = ({ navigation }) => {
     if (!email) missingFields.push('Email');
     if (!contactNumber) missingFields.push('Contact Number');
     if (!password) missingFields.push('Password');
+    if (!latitude || !longitude) missingFields.push('Location');
 
     if (missingFields.length > 0) {
       setAlertTitle('Missing Fields');
@@ -75,29 +75,12 @@ const Register = ({ navigation }) => {
     return true;
   };
 
-  return (
-    <ScrollView contentContainerStyle={globalStyles.container}>
-      <View style={{ marginBottom: 200 }}>
-        <HeaderIcon />
-      </View>
+  const handleSaveLocation = () => {
+    setShowMap(false);
+  };
 
-      <Text style={globalStyles.heading}>Register Store</Text>
-
-      <TextInput
-        style={globalStyles.input}
-        placeholder="Store Name (required)"
-        value={storeName}
-        onChangeText={setStoreName}
-      />
-
-      <TextInput
-        style={globalStyles.input}
-        placeholder="Contact Number (required)"
-        value={contactNumber}
-        onChangeText={setContactNumber}
-        keyboardType="phone-pad"
-      />
-
+  return showMap ? (
+    <View style={globalStyles.container}>
       <MapView
         style={mapStyles.map}
         initialRegion={{
@@ -122,6 +105,34 @@ const Register = ({ navigation }) => {
           }}
         />
       </MapView>
+      <TouchableOpacity style={globalStyles.button} onPress={handleSaveLocation}>
+        <Text style={globalStyles.buttonText}>Save Location</Text>
+      </TouchableOpacity>
+    </View>
+  ) : (
+    <ScrollView contentContainerStyle={globalStyles.container}>
+      <Text style={globalStyles.heading}>Register Store</Text>
+
+      <TextInput
+        style={globalStyles.input}
+        placeholder="Store Name (required)"
+        value={storeName}
+        onChangeText={setStoreName}
+      />
+
+      <TextInput
+        style={globalStyles.input}
+        placeholder="Contact Number (required)"
+        value={contactNumber}
+        onChangeText={setContactNumber}
+        keyboardType="phone-pad"
+      />
+
+      <TouchableOpacity style={globalStyles.input} onPress={() => setShowMap(true)}>
+        <Text style={{ color: '#90A4AE' }}>{latitude && longitude ? `Location:
+        (${latitude.toFixed(6)}, ${longitude.toFixed(6)})`: 'Choose Location on Map'}
+        </Text>      
+      </TouchableOpacity>
 
       <TextInput
         style={globalStyles.input}
@@ -166,15 +177,11 @@ const Register = ({ navigation }) => {
           <ActivityIndicator size="large" color="#0000ff" />
         </View>
       )}
-
-      <AwesomeAlert
+      <CustomAlert
         show={showAlert}
         title={alertTitle}
         message={alertMessage}
-        showConfirmButton={true}
-        confirmText="OK"
-        confirmButtonColor="#4CAF50"
-        onConfirmPressed={() => setShowAlert(false)}
+        onConfirm={() => setShowAlert(false)}
       />
     </ScrollView>
   );

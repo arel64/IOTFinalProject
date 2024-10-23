@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Text, View, TextInput, TouchableOpacity, Alert, ScrollView, StyleSheet } from 'react-native';
+import { Text, View, TextInput, TouchableOpacity, ScrollView } from 'react-native';
 import SvgQRCode from 'react-native-qrcode-svg';
 import * as Print from 'expo-print';
 import { captureRef } from 'react-native-view-shot';
 import * as FileSystem from 'expo-file-system';
 import { checkTokenStorage } from './TokenUtils';
-import { globalStyles } from './styles';
+import { globalStyles, CustomAlert } from './styles';
 
 export default function GenerateQRCode({ navigation }) {
   const [medicineName, setMedicineName] = useState('Aspirin');
@@ -13,6 +13,9 @@ export default function GenerateQRCode({ navigation }) {
   const [expiryDate, setExpiryDate] = useState('2024-12-31');
   const [batchNumber, setBatchNumber] = useState('B12345');
   const [price, setPrice] = useState('4.99');
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertTitle, setAlertTitle] = useState('');
+  const [alertMessage, setAlertMessage] = useState('');
   const [qrData, setQrData] = useState(null);
   const qrRef = useRef(null);
 
@@ -53,44 +56,48 @@ export default function GenerateQRCode({ navigation }) {
         `;
 
         await Print.printAsync({ html });
-      } catch (error) {
-        console.error(error);
-        Alert.alert('Print Error', 'Failed to print QR code. Please try again.');
-      }
-    } else {
-      Alert.alert('No QR Code', 'Please generate a QR code first.');
+    } catch (error) {
+      console.error(error);
+      setAlertTitle('Print Error');
+      setAlertMessage('Failed to print QR code. Please try again.');
+      setShowAlert(true);
     }
-  };
+  } else {
+    setAlertTitle('No QR Code');
+    setAlertMessage('Please generate a QR code first.');
+    setShowAlert(true);
+  }
+};
 
   return (
-    <ScrollView contentContainerStyle={globalStyles.container}>
-      <Text style={globalStyles.text}>Medicine Name</Text>
+    <ScrollView contentContainerStyle={{ ...globalStyles.container, flexGrow: 1 }}>
       <TextInput
         style={globalStyles.input}
+        placeholder="Medicine Name (required)"
         value={medicineName}
         onChangeText={setMedicineName}
       />
-      <Text style={globalStyles.text}>Manufacturer</Text>
       <TextInput
         style={globalStyles.input}
+        placeholder="Manufacturer (required)"
         value={manufacturer}
         onChangeText={setManufacturer}
       />
-      <Text style={globalStyles.text}>Expiry Date</Text>
       <TextInput
         style={globalStyles.input}
+        placeholder="Expiry Date (YYYY-MM-DD) (required)"
         value={expiryDate}
         onChangeText={setExpiryDate}
       />
-      <Text style={globalStyles.text}>Batch Number</Text>
       <TextInput
         style={globalStyles.input}
+        placeholder="Batch Number (required)"
         value={batchNumber}
         onChangeText={setBatchNumber}
       />
-      <Text style={globalStyles.text}>Price</Text>
       <TextInput
         style={globalStyles.input}
+        placeholder="Price"
         value={price}
         onChangeText={setPrice}
         keyboardType="numeric"
@@ -101,7 +108,7 @@ export default function GenerateQRCode({ navigation }) {
       </TouchableOpacity>
 
       {qrData && (
-        <View style={styles.qrContainer} collapsable={false} ref={qrRef}>
+        <View style={{ marginVertical: 20, alignItems: 'center' }} ref={qrRef}>
           <SvgQRCode value={qrData} size={200} />
         </View>
       )}
@@ -110,16 +117,18 @@ export default function GenerateQRCode({ navigation }) {
         <Text style={globalStyles.buttonText}>Print QR Code</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={globalStyles.button} onPress={() => navigation.navigate('PharmacistDashboard')}>
+      <TouchableOpacity
+        style={globalStyles.button}
+        onPress={() => navigation.navigate('PharmacistDashboard')}
+      >
         <Text style={globalStyles.buttonText}>Back</Text>
       </TouchableOpacity>
+      <CustomAlert
+        show={showAlert}
+        title={alertTitle}
+        message={alertMessage}
+        onConfirm={() => setShowAlert(false)}
+      />
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  qrContainer: {
-    marginTop: 20,
-    alignItems: 'center',
-  },
-});

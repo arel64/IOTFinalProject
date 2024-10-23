@@ -3,16 +3,16 @@ import AwesomeAlert from 'react-native-awesome-alerts';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 const colors = {
-    primary: '#4FC3F7',
-    secondary: '#81D4FA',
-    background: '#E1F5FE',
-    text: '#01579B',
-    muted: '#90A4AE',
-    confirmButton: '#4CAF50',
-    overlay: 'rgba(0, 0, 0, 0.75)',
-    inputBackground: '#FFFFFF',
-    inputBorder: '#B0BEC5',
-    placeholderText: '#90A4AE',
+  primary: '#4FC3F7',
+  secondary: '#81D4FA',
+  background: '#E1F5FE',
+  text: '#01579B',
+  muted: '#90A4AE',
+  confirmButton: '#4CAF50',
+  overlay: 'rgba(0, 0, 0, 0.75)',
+  inputBackground: '#FFFFFF',
+  inputBorder: '#B0BEC5',
+  placeholderText: '#90A4AE',
 };
 
 const globalStyles = StyleSheet.create({
@@ -39,6 +39,7 @@ const globalStyles = StyleSheet.create({
     elevation: 2,
     fontSize: wp('4%'),
     color: colors.text,
+    fontFamily: 'Lato_400Regular',
   },
   inputContainer: {
     width: '100%',
@@ -63,6 +64,7 @@ const globalStyles = StyleSheet.create({
     color: 'white',
     fontSize: wp('4%'),
     fontWeight: 'bold',
+    fontFamily: 'Lato_400Regular',
   },
   iconContainer: {
     position: 'absolute',
@@ -70,7 +72,7 @@ const globalStyles = StyleSheet.create({
     left: 0,
     right: 0,
     alignItems: 'center',
-    zIndex: 1,  
+    zIndex: 1,
   },
   icon: {
     width: wp('15%'),
@@ -84,16 +86,19 @@ const globalStyles = StyleSheet.create({
     color: colors.text,
     marginBottom: hp('2%'),
     textAlign: 'center',
+    fontFamily: 'Poppins_600SemiBold',
   },
   text: {
     fontSize: wp('4%'),
     color: colors.text,
     marginBottom: hp('2%'),
+    fontFamily: 'Lato_400Regular',
   },
   mutedText: {
     fontSize: wp('3.5%'),
     color: colors.muted,
     marginBottom: hp('1%'),
+    fontFamily: 'Lato_400Regular',
   },
 });
 
@@ -109,12 +114,14 @@ const alertStyles = StyleSheet.create({
     color: colors.text,
     textAlign: 'center',
     marginBottom: hp('2%'),
+    fontFamily: 'Poppins_600SemiBold',
   },
   alertMessage: {
     fontSize: wp('4%'),
     color: colors.muted,
     textAlign: 'center',
     marginBottom: hp('3%'),
+    fontFamily: 'Lato_400Regular',
   },
   confirmButton: {
     backgroundColor: colors.confirmButton,
@@ -133,20 +140,34 @@ const alertStyles = StyleSheet.create({
   },
 });
 
-const CustomAlert = ({ show, title, message, onConfirm }) => (
-  <AwesomeAlert
-    show={show}
-    title={title}
-    message={message}
-    showConfirmButton={true}
-    confirmText="OK"
-    confirmButtonColor={colors.confirmButton}
-    onConfirmPressed={onConfirm}
-    titleStyle={alertStyles.alertTitle}
-    messageStyle={alertStyles.alertMessage}
-    contentContainerStyle={alertStyles.alertContainer}
-  />
-);
+const CustomAlert = ({
+    show,
+    title,
+    message,
+    onConfirm,
+    onCancel,
+    showCancelButton = false,
+    confirmText = 'OK',
+    cancelText = 'Cancel',
+  }) => (
+    <AwesomeAlert
+      show={show}
+      title={title}
+      message={message}
+      showConfirmButton={true}
+      showCancelButton={showCancelButton}
+      confirmText={confirmText}
+      cancelText={cancelText}
+      confirmButtonColor={colors.confirmButton}
+      cancelButtonColor="#F44336"
+      onConfirmPressed={onConfirm}
+      onCancelPressed={onCancel}
+      titleStyle={alertStyles.alertTitle}
+      messageStyle={alertStyles.alertMessage}
+      contentContainerStyle={alertStyles.alertContainer}
+    />
+  );
+  
 
 const LoadingAlert = ({ show }) => (
   <AwesomeAlert
@@ -203,6 +224,7 @@ const globalStyles_client = StyleSheet.create({
     color: 'white',
     fontSize: wp('4%'),
     fontWeight: 'bold',
+    fontFamily: 'Lato_400Regular',
   },
   statusText: {
     fontSize: wp('4%'),
@@ -210,6 +232,7 @@ const globalStyles_client = StyleSheet.create({
     textAlign: 'center',
     color: '#0288D1',
     width: '80%',
+    fontFamily: 'Lato_400Regular',
   },
   map: {
     width: '100%',

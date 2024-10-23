@@ -8,21 +8,31 @@ import CheckoutMedicine from './CheckoutMedicine';
 import HomeScreen from './HomeScreen';
 import FindMedicine from './FindMedicine';
 import PharmacistDashboard from './PharmacistDashboard';
-import HeaderIcon from './HeaderIcon'; // Import HeaderIcon
+import HeaderIcon from './HeaderIcon';
 
 const Stack = createStackNavigator();
 
 export default function AppNavigator() {
   return (
     <Stack.Navigator
-      screenOptions={{
+      screenOptions={({ route }) => ({
         cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
-        headerTitle: () => <HeaderIcon />, // Set HeaderIcon as the title
-        headerTitleAlign: 'center', // Align the icon to the center
         headerStyle: {
-          backgroundColor: '#E1F5FE', // Optional: Customize header background
+          backgroundColor: '#E1F5FE',
         },
-      }}
+        headerTitle: '',
+        headerTitleAlign: 'center',
+        headerRight: () => (
+          <HeaderIcon />
+        ),
+        headerRightContainerStyle: {
+          paddingRight: 15,
+        },
+        headerTitleStyle: {
+          fontSize: 20,
+          fontWeight: 'bold',
+        },
+      })}
     >
       <Stack.Screen name="Home" component={HomeScreen} />
       <Stack.Screen name="Login" component={Login} />
