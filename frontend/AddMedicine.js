@@ -5,10 +5,11 @@ import { checkTokenStorage } from './TokenUtils';
 import { makeAuthenticatedRequest } from './CommunicationUtils';
 import { globalStyles, cameraStyles } from './styles'; 
 import AwesomeAlert from 'react-native-awesome-alerts';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import ScanQrCodeDesign from './ScanQrCodeDesign';
+
 
 export default function AddMedicine({ navigation }) {
-  const [status, setStatus] = useState(null);
-  const [scanned, setScanned] = useState(false);
   const [cameraVisible, setCameraVisible] = useState(false);
   const [hasPermission, setHasPermission] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -22,6 +23,8 @@ export default function AddMedicine({ navigation }) {
   const [alertTitle, setAlertTitle] = useState('');
   const [alertMessage, setAlertMessage] = useState('');
   const [showCancelButton, setShowCancelButton] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+
 
   useEffect(() => {
     (async () => {
@@ -62,10 +65,12 @@ export default function AddMedicine({ navigation }) {
         'AddMedicine',
         JSON.stringify(medicine),
         navigation,
-        setStatus
       );
       const text = await response.text();
-      setStatus(text);
+      setAlertTitle('Success');
+      setAlertMessage('Medicine added successfully!');
+      setShowCancelButton(false);
+      setShowAlert(true);
     } catch (error) {
       console.error(error);
     } finally {
@@ -83,15 +88,20 @@ export default function AddMedicine({ navigation }) {
   };
 
   const handleBarCodeScanned = ({ type, data }) => {
-    setScanned(true);
     try {
       const medicine = JSON.parse(data);
       addMedicine(medicine);
-      setStatus(`Medicine added: ${JSON.stringify(medicine)}`);
+      setAlertTitle('Success');
+      setAlertMessage(`Medicine added: ${JSON.stringify(medicine)}`);
+      setShowCancelButton(false);
+      setShowAlert(true);
     } catch (error) {
       console.error('Invalid QR code data:', error);
-      setStatus('Invalid QR code data');
-    }
+      setAlertTitle('Error');
+      setAlertMessage('Invalid QR code data');
+      setShowCancelButton(false);
+      setShowAlert(true);
+      }
   };
 
   const validateForm = () => {
@@ -123,18 +133,33 @@ export default function AddMedicine({ navigation }) {
     );
   }
 
+  const onDateChange = (event, selectedDate) => {
+    setShowDatePicker(false);
+    if (selectedDate) {
+      const formattedDate = selectedDate.toISOString().split('T')[0];
+      setExpiryDate(formattedDate);
+    }
+  };
+
   return (
     <ScrollView contentContainerStyle={globalStyles.container}>
-      <Text style={globalStyles.text}>Status: {status}</Text>
-
-      {manualEntry ? (
+      {cameraVisible  ? (
+        <ScanQrCodeDesign 
+          onClose={() => setCameraVisible(false)} 
+          onBarCodeScanned={handleBarCodeScanned} 
+        />
+      ) : manualEntry ? (
         <>
           <TextInput style={globalStyles.input} placeholder="Medicine Name (required)" value={medicineName} onChangeText={setMedicineName} />
           <TextInput style={globalStyles.input} placeholder="Manufacturer (required)" value={manufacturer} onChangeText={setManufacturer} />
-          <TextInput style={globalStyles.input} placeholder="Expiry Date (YYYY-MM-DD) (required)" value={expiryDate} onChangeText={setExpiryDate} />
+          <TextInput style={globalStyles.input} placeholder="Expiry date (e.g., 2024-12-31) (required)" value={expiryDate} onChangeText={setExpiryDate}
+            onFocus={() => setShowDatePicker(true)}
+          />
+          {showDatePicker && (
+            <DateTimePicker value={new Date()} mode="date" display="default" onChange={onDateChange} />
+          )}
           <TextInput style={globalStyles.input} placeholder="Batch Number (required)" value={batchNumber} onChangeText={setBatchNumber} />
           <TextInput style={globalStyles.input} placeholder="Price" value={price} onChangeText={setPrice} keyboardType="numeric" />
-
           <TouchableOpacity style={globalStyles.button} onPress={handleManualSubmit}>
             <Text style={globalStyles.buttonText}>Submit</Text>
           </TouchableOpacity>
@@ -147,36 +172,22 @@ export default function AddMedicine({ navigation }) {
           <TouchableOpacity style={globalStyles.button} onPress={addHardcodedMedicines} disabled={loading}>
             <Text style={globalStyles.buttonText}>DEBUG Add Hardcoded Medicines</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity style={globalStyles.button} onPress={() => { setScanned(false); setCameraVisible(true); }} disabled={loading}>
+          <TouchableOpacity style={globalStyles.button} onPress={() => { setCameraVisible(true); }} disabled={loading}>
             <Text style={globalStyles.buttonText}>Scan QR Code</Text>
           </TouchableOpacity>
-
           <TouchableOpacity style={globalStyles.button} onPress={() => setManualEntry(true)}>
             <Text style={globalStyles.buttonText}>Add Medicine Manually</Text>
           </TouchableOpacity>
-
           <TouchableOpacity style={globalStyles.button} onPress={() => navigation.navigate('PharmacistDashboard')} disabled={loading}>
-            <Text style={globalStyles.buttonText}>Back to Home</Text>
+            <Text style={globalStyles.buttonText}>Back</Text>
           </TouchableOpacity>
         </View>
       )}
-
-      {cameraVisible && !scanned && (
-        <View style={cameraStyles.cameraContainer}>
-          <BarCodeScanner
-            onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
-            style={StyleSheet.absoluteFillObject}
-          />
-        </View>
-      )}
-
       {loading && (
         <View style={cameraStyles.loadingOverlay}>
           <ActivityIndicator size="large" color="#0000ff" />
         </View>
       )}
-
       <AwesomeAlert
         show={showAlert}
         title={alertTitle}
@@ -197,5 +208,5 @@ export default function AddMedicine({ navigation }) {
         }}
       />
     </ScrollView>
-  );
+  );  
 }

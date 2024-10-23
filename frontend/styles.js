@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import AwesomeAlert from 'react-native-awesome-alerts';
 
 const colors = {
   primary: '#4FC3F7',
@@ -80,22 +81,86 @@ const alertStyles = StyleSheet.create({
   },
 });
 
+const CustomAlert = ({ show, title, message, onConfirm }) => (
+    <AwesomeAlert
+      show={show}
+      title={title}
+      message={message}
+      showConfirmButton={true}
+      confirmText="OK"
+      confirmButtonColor={colors.confirmButton}
+      onConfirmPressed={onConfirm}
+      titleStyle={alertStyles.alertTitle}
+      messageStyle={alertStyles.alertMessage}
+      contentContainerStyle={alertStyles.alertContainer}
+    />
+  );
+  
+const LoadingAlert = ({ show }) => (
+    <AwesomeAlert
+        show={show}
+        showProgress={true}
+        title="Logging in..."
+        closeOnTouchOutside={false}
+        closeOnHardwareBackPress={false}
+        showConfirmButton={false}
+    />
+);
+
 const cameraStyles = StyleSheet.create({
     cameraContainer: {
-      position: 'relative',
+        position: 'relative',
+        width: '100%',
+        height: '100%',
+    },
+    scannerFillObject: {
+        ...StyleSheet.absoluteFillObject,
+    },
+    closeButton: {
+        position: 'absolute',
+        top: 40,
+        right: 20, // Adjust for left if needed
+        zIndex: 1,
+    },
+});
+
+const mapStyles = StyleSheet.create({
+    map: {
       width: '100%',
       height: 300,
+      marginBottom: 10,
     },
-    boundingBoxContainer: {
-      ...StyleSheet.absoluteFillObject,
-      justifyContent: 'center',
+});
+
+const globalStyles_client = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: '#E0F7FA',
+      padding: 20,
+    },
+    button: {
+      backgroundColor: '#29B6F6',
+      padding: 12,
+      borderRadius: 8,
       alignItems: 'center',
+      marginVertical: 8,
     },
-    boundingBox: {
-      width: 200,
-      height: 200,
-      borderWidth: 2,
-      borderColor: 'red',
+    buttonText: {
+      color: 'white',
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
+    statusText: {
+      fontSize: 18,
+      marginBottom: 20,
+      textAlign: 'center',
+      color: '#0288D1',
+      width: '80%',
+    },
+    map: {
+      width: '100%',
+      height: 300,
+      marginBottom: 20,
     },
     loadingOverlay: {
       ...StyleSheet.absoluteFillObject,
@@ -103,8 +168,6 @@ const cameraStyles = StyleSheet.create({
       justifyContent: 'center',
       alignItems: 'center',
     },
-  });
+});
   
-  export { globalStyles, alertStyles, colors, cameraStyles };
-  
-
+  export { globalStyles, alertStyles, colors, cameraStyles, mapStyles, globalStyles_client, CustomAlert, LoadingAlert };

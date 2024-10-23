@@ -3,14 +3,17 @@ import { Text, View, ActivityIndicator, ScrollView, TouchableOpacity, StyleSheet
 import { BarCodeScanner } from 'expo-barcode-scanner';
 import { checkTokenStorage } from './TokenUtils';
 import { makeAuthenticatedRequest } from './CommunicationUtils';
-import { globalStyles, cameraStyles } from './styles'; // Import global and camera styles
+import AwesomeAlert from 'react-native-awesome-alerts';
+import { globalStyles, cameraStyles } from './styles';
+import ScanQrCodeDesign from './ScanQrCodeDesign';
 
 export default function CheckoutMedicine({ navigation }) {
-  const [status, setStatus] = useState(null);
-  const [scanned, setScanned] = useState(false);
   const [cameraVisible, setCameraVisible] = useState(false);
   const [hasPermission, setHasPermission] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertTitle, setAlertTitle] = useState('');
+  const [alertMessage, setAlertMessage] = useState('');
 
   useEffect(() => {
     (async () => {
@@ -38,11 +41,21 @@ export default function CheckoutMedicine({ navigation }) {
   const checkoutMedicine = async (medicine) => {
     setLoading(true);
     try {
-      const response = await makeAuthenticatedRequest('CheckoutMedicine', JSON.stringify(medicine), navigation, setStatus);
+      const response = await makeAuthenticatedRequest(
+        'CheckoutMedicine',
+        JSON.stringify(medicine),
+        navigation
+      );
       const text = await response.text();
-      setStatus(text);
+  
+      setAlertTitle('Success');
+      setAlertMessage(text);
+      setShowAlert(true);
     } catch (error) {
       console.error(error);
+      setAlertTitle('Error');
+      setAlertMessage('Failed to checkout medicine.');
+      setShowAlert(true);
     } finally {
       setLoading(false);
     }
@@ -76,28 +89,34 @@ export default function CheckoutMedicine({ navigation }) {
     checkoutMedicine(medicines[0]);
   };
 
-  const handleBarCodeScanned = ({ type, data }) => {
-    setScanned(true);
-    console.log(`QR code detected: ${data}`);
-    try {
-      const medicine = JSON.parse(data);
-      checkoutMedicine(medicine);
-      setStatus(`Medicine checked out: ${JSON.stringify(medicine)}`);
-    } catch (error) {
-      console.error('Invalid QR code data:', error);
-      setStatus('Invalid QR code data');
-    }
-  };
+const handleBarCodeScanned = ({ type, data }) => {
+  console.log(`QR code detected: ${data}`);
+  try {
+    const medicine = JSON.parse(data);
+    checkoutMedicine(medicine);
+  } catch (error) {
+    console.error('Invalid QR code data:', error);
+    setAlertTitle('Error');
+    setAlertMessage('Invalid QR code data.');
+    setShowAlert(true);
+  }
+};
 
-  return (
-    <ScrollView contentContainerStyle={globalStyles.container}>
-      <Text style={globalStyles.text}>Status: {status}</Text>
+
+return (
+  <ScrollView contentContainerStyle={globalStyles.container}>
+    {cameraVisible ? (
+      <ScanQrCodeDesign
+        onClose={() => setCameraVisible(false)}
+        onBarCodeScanned={handleBarCodeScanned}
+      />
+    ) : (
       <View style={globalStyles.buttonContainer}>
-        <TouchableOpacity style={globalStyles.button} onPress={checkoutHardcodedMedicines} disabled={loading}>
+        <TouchableOpacity style={globalStyles.button} onPress={() => checkoutHardcodedMedicines({ medicineName: 'Aspirin' })}>
           <Text style={globalStyles.buttonText}>DEBUG Checkout Hardcoded Medicine</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={globalStyles.button} onPress={() => { setScanned(false); setCameraVisible(true); }} disabled={loading}>
+        <TouchableOpacity style={globalStyles.button} onPress={() => setCameraVisible(true)} disabled={loading}>
           <Text style={globalStyles.buttonText}>Scan QR Code</Text>
         </TouchableOpacity>
 
@@ -105,25 +124,23 @@ export default function CheckoutMedicine({ navigation }) {
           <Text style={globalStyles.buttonText}>Back</Text>
         </TouchableOpacity>
       </View>
+    )}
 
-      {cameraVisible && !scanned && (
-        <View style={cameraStyles.cameraContainer}>
-          <BarCodeScanner
-            onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
-            style={StyleSheet.absoluteFillObject}
-            barCodeTypes={[BarCodeScanner.Constants.BarCodeType.qr]}
-          />
-          <View style={cameraStyles.boundingBoxContainer}>
-            <View style={cameraStyles.boundingBox} />
-          </View>
-        </View>
-      )}
+    {loading && (
+      <View style={cameraStyles.loadingOverlay}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    )}
 
-      {loading && (
-        <View style={cameraStyles.loadingOverlay}>
-          <ActivityIndicator size="large" color="#0000ff" />
-        </View>
-      )}
-    </ScrollView>
+    <AwesomeAlert
+      show={showAlert}
+      title={alertTitle}
+      message={alertMessage}
+      showConfirmButton={true}
+      confirmText="OK"
+      confirmButtonColor="#4CAF50"
+      onConfirmPressed={() => setShowAlert(false)}
+    />
+  </ScrollView>
   );
 }

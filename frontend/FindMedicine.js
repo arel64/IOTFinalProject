@@ -1,13 +1,5 @@
 import React, { useState } from 'react';
-import {
-  StyleSheet,
-  View,
-  Button,
-  ActivityIndicator,
-  ScrollView,
-  Text,
-  Platform,
-} from 'react-native';
+import { View, ActivityIndicator,  ScrollView,  Text,  Platform, TouchableOpacity} from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import MapViewDirections from 'react-native-maps-directions';
 import * as Location from 'expo-location';
@@ -16,6 +8,7 @@ import { Asset } from 'expo-asset';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { makeRequest } from './CommunicationUtils';
+import { globalStyles_client } from './styles';
 
 const GOOGLE_MAPS_APIKEY =
   Platform.OS === 'ios'
@@ -159,26 +152,36 @@ function FindMedicineScreen() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.statusText}>Status: {status}</Text>
-      <Button
-        title="DEBUG: Send Hardcoded Image"
+    <ScrollView contentContainerStyle={globalStyles_client.container}>
+      <Text style={globalStyles_client.statusText}>Status: {status}</Text>
+
+      <TouchableOpacity
+        style={globalStyles_client.button}
         onPress={handleSendHardcodedImage}
         disabled={loading}
-      />
-      <Button
-        title="Take Picture and Send"
+      >
+        <Text style={globalStyles_client.buttonText}>DEBUG: Send Hardcoded Image</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={globalStyles_client.button}
         onPress={handleTakePicture}
         disabled={loading}
-      />
-      <Button
-        title="Select Picture from Gallery and Send"
+      >
+        <Text style={globalStyles_client.buttonText}>Take Picture and Send</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={globalStyles_client.button}
         onPress={handleSelectPicture}
         disabled={loading}
-      />
+      >
+        <Text style={globalStyles_client.buttonText}>Select Picture from Gallery and Send</Text>
+      </TouchableOpacity>
+
       {origin && (
         <MapView
-          style={styles.map}
+          style={globalStyles_client.map}
           initialRegion={{
             latitude: origin.latitude,
             longitude: origin.longitude,
@@ -205,40 +208,14 @@ function FindMedicineScreen() {
           ))}
         </MapView>
       )}
+
       {loading && (
-        <View style={styles.loadingOverlay}>
+        <View style={globalStyles_client.loadingOverlay}>
           <ActivityIndicator size="large" color="#0000ff" />
         </View>
       )}
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    paddingVertical: 20,
-  },
-  statusText: {
-    fontSize: 18,
-    marginBottom: 20,
-    textAlign: 'center',
-    width: '80%',
-  },
-  map: {
-    width: '100%',
-    height: 300,
-    marginBottom: 20,
-  },
-  loadingOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});
 
 export default FindMedicineScreen;
