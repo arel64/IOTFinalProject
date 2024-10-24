@@ -1,13 +1,5 @@
 import React, { useState } from 'react';
-import {
-  StyleSheet,
-  View,
-  Button,
-  ActivityIndicator,
-  ScrollView,
-  Text,
-  Platform,
-} from 'react-native';
+import { View, ActivityIndicator,  ScrollView,  Text,  Platform, TouchableOpacity} from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import MapViewDirections from 'react-native-maps-directions';
 import * as Location from 'expo-location';
@@ -16,6 +8,9 @@ import { Asset } from 'expo-asset';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { makeRequest } from './CommunicationUtils';
+import { globalStyles_client, CustomAlert } from './styles'; 
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+
 
 const GOOGLE_MAPS_APIKEY =
   Platform.OS === 'ios'
@@ -26,14 +21,22 @@ function FindMedicineScreen() {
   const [markers, setMarkers] = useState([]);
   const [origin, setOrigin] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState('');
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertTitle, setAlertTitle] = useState('');
+  const [alertMessage, setAlertMessage] = useState('');
+
+  const showAlertMessage = (title, message) => {
+    setAlertTitle(title);
+    setAlertMessage(message);
+    setShowAlert(true);
+  };
 
   const getLocation = async () => {
     try {
       let { status } = await Location.requestForegroundPermissionsAsync();
 
       if (status !== 'granted') {
-        setStatus('Location permission denied');
+        showAlertMessage('Permission Denied', 'Location permission denied');
         return;
       }
 
@@ -60,9 +63,6 @@ function FindMedicineScreen() {
         'LocateMedicine',
         JSON.stringify({ imageData: base64Img, imageName: imageName })
       );
-      console.log(response);
-      if (!response) return;
-
       const data = await response.json();
       if (response.ok) {
         setMarkers(
@@ -73,16 +73,22 @@ function FindMedicineScreen() {
             description: store.Email,
           }))
         );
-        console.log(data);
         const loc = await getLocation();
         setOrigin(loc);
-        setStatus('Markers and directions updated.');
-        console.log('Directions updated');
+
+        if (response.status === 206 && data.notFoundMedications.length > 0) {
+          showAlertMessage(
+            'Medicine Not Found',
+            `The following medicines were not found: ${data.notFoundMedications.join(', ')}`
+          );
+        } else {
+          showAlertMessage('Success', 'Markers and directions updated.');
+        }
       } else {
-        setStatus(`Failed to locate medicine: ${data.error}`);
+        showAlertMessage('Failed', `Failed to locate medicine: ${data.error || 'Unknown error'}`);
       }
     } catch (error) {
-      setStatus('An error occurred while sending the image.');
+      showAlertMessage('Error', 'An error occurred while sending the image.');
       console.error(error);
     } finally {
       setLoading(false);
@@ -101,7 +107,7 @@ function FindMedicineScreen() {
       const base64Img = manipResult.base64;
       await sendImage(base64Img, 'medicineSample.jpg');
     } catch (error) {
-      setStatus('An error occurred while sending the hardcoded image.');
+      showAlertMessage('Error', 'An error occurred while sending the hardcoded image.');
       console.error(error);
     }
   };
@@ -111,7 +117,7 @@ function FindMedicineScreen() {
       let permissionResult = await ImagePicker.requestCameraPermissionsAsync();
 
       if (permissionResult.status !== 'granted') {
-        setStatus('Camera permission denied.');
+        showAlertMessage('Permission Denied', 'Camera permission denied.');
         return;
       }
 
@@ -127,7 +133,7 @@ function FindMedicineScreen() {
         await sendImage(base64Img, imageName);
       }
     } catch (error) {
-      setStatus('An error occurred while taking the picture.');
+      showAlertMessage('Error', 'An error occurred while taking the picture.');
       console.error(error);
     }
   };
@@ -137,7 +143,7 @@ function FindMedicineScreen() {
       let permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
       if (permissionResult.status !== 'granted') {
-        setStatus('Media library permission denied.');
+        showAlertMessage('Permission Denied', 'Media library permission denied.');
         return;
       }
 
@@ -153,92 +159,77 @@ function FindMedicineScreen() {
         await sendImage(base64Img, imageName);
       }
     } catch (error) {
-      setStatus('An error occurred while selecting the picture.');
+      showAlertMessage('Error', 'An error occurred while selecting the picture.');
       console.error(error);
     }
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.statusText}>Status: {status}</Text>
-      <Button
-        title="DEBUG: Send Hardcoded Image"
-        onPress={handleSendHardcodedImage}
-        disabled={loading}
-      />
-      <Button
-        title="Take Picture and Send"
-        onPress={handleTakePicture}
-        disabled={loading}
-      />
-      <Button
-        title="Select Picture from Gallery and Send"
-        onPress={handleSelectPicture}
-        disabled={loading}
-      />
-      {origin && (
-        <MapView
-          style={styles.map}
-          initialRegion={{
-            latitude: origin.latitude,
-            longitude: origin.longitude,
-            latitudeDelta: 0.0922,
-            longitudeDelta: 0.0421,
-          }}
+      <ScrollView contentContainerStyle={globalStyles_client.container}>
+        <TouchableOpacity
+          style={globalStyles_client.button}
+          onPress={handleSendHardcodedImage}
+          disabled={loading}
         >
-          <MapViewDirections
-            origin={origin}
-            destination={origin}
-            waypoints={markers}
-            apikey={GOOGLE_MAPS_APIKEY}
-          />
-          {markers.map((marker, index) => (
-            <Marker
-              key={index}
-              coordinate={{
-                latitude: marker.latitude,
-                longitude: marker.longitude,
-              }}
-              title={marker.title}
-              description={marker.description}
+          <Text style={globalStyles_client.buttonText}>DEBUG: Send Hardcoded Image</Text>
+        </TouchableOpacity>
+  
+        <TouchableOpacity style={globalStyles_client.button} onPress={handleTakePicture} disabled={loading}>
+          <Icon name="camera" size={20} color="#fff" style={{ marginRight: 8 }} />
+          <Text style={globalStyles_client.buttonText}>Take Picture and Send</Text>
+        </TouchableOpacity>
+  
+        <TouchableOpacity
+          style={globalStyles_client.button}
+          onPress={handleSelectPicture}
+          disabled={loading}
+        >
+          <Text style={globalStyles_client.buttonText}>Select Picture from Gallery and Send</Text>
+        </TouchableOpacity>
+  
+        {origin && (
+          <MapView
+            style={globalStyles_client.map}
+            initialRegion={{
+              latitude: origin.latitude,
+              longitude: origin.longitude,
+              latitudeDelta: 0.0922,
+              longitudeDelta: 0.0421,
+            }}
+          >
+            <MapViewDirections
+              origin={origin}
+              destination={origin}
+              waypoints={markers}
+              apikey={GOOGLE_MAPS_APIKEY}
             />
-          ))}
-        </MapView>
-      )}
-      {loading && (
-        <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color="#0000ff" />
-        </View>
-      )}
-    </ScrollView>
+            {markers.map((marker, index) => (
+              <Marker
+                key={index}
+                coordinate={{
+                  latitude: marker.latitude,
+                  longitude: marker.longitude,
+                }}
+                title={marker.title}
+                description={marker.description}
+              />
+            ))}
+          </MapView>
+        )}
+  
+        {loading && (
+          <View style={globalStyles_client.loadingOverlay}>
+            <ActivityIndicator size="large" color="#0000ff" />
+          </View>
+        )}
+  
+        <CustomAlert
+          show={showAlert}
+          title={alertTitle}
+          message={alertMessage}
+          onConfirm={() => setShowAlert(false)}
+        />
+      </ScrollView>
   );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    paddingVertical: 20,
-  },
-  statusText: {
-    fontSize: 18,
-    marginBottom: 20,
-    textAlign: 'center',
-    width: '80%',
-  },
-  map: {
-    width: '100%',
-    height: 300,
-    marginBottom: 20,
-  },
-  loadingOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});
-
+}  
 export default FindMedicineScreen;

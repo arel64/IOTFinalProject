@@ -2,8 +2,8 @@ import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {checkTokenStorage} from './TokenUtils'
 const URL = Platform.select({
-    ios: "http://localhost:7071/api",
-    android: "http://192.168.1.226:7071/api",
+  ios: "http://192.168.0.185:7071/api",
+  android: "http://192.168.0.185:7071/api",
 });
 
 export const makeRequest = async (endpointName, json, headers = {}) => {

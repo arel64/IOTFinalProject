@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TextInput, Button, ActivityIndicator } from 'react-native';
+import { Text, View, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import { makeRequest } from './CommunicationUtils';
+import { globalStyles, CustomAlert } from './styles';
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertTitle, setAlertTitle] = useState('');
+  const [alertMessage, setAlertMessage] = useState('');
 
   const login = async ({ email, password }) => {
     setLoading(true);
@@ -16,18 +20,22 @@ const LoginScreen = ({ navigation }) => {
       const data = await response.json();
       if (response.ok) {
         await AsyncStorage.setItem('access_token', data.token);
-        setStatus("Login successful!");
-        navigation.navigate('Home');
+        navigation.navigate('PharmacistDashboard');
       } else {
-        setStatus(`Login failed: ${data.error}`);
+        setAlertTitle('Login Failed');
+        setAlertMessage(data.error || 'Unable to login.');
+        setShowAlert(true);
       }
     } catch (error) {
       console.error(error);
-      setStatus("An error occurred during login.");
+      setAlertTitle('Error');
+      setAlertMessage('An error occurred during login.');
+      setShowAlert(true);
     } finally {
       setLoading(false);
     }
   };
+  
 
   const debugLoginStore = () => {
     const debugLoginData = {
@@ -38,65 +46,71 @@ const LoginScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.statusText}>Login</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
-      <Button
-        title="Login"
+    <View style={globalStyles.container}>
+      <View style={globalStyles.inputContainer}>
+        <View style={globalStyles.inputIconContainer}>
+          <Icon name="email" size={24} color="#90A4AE" />
+        </View>
+        <TextInput
+          style={[globalStyles.input, globalStyles.inputWithIcon]}
+          placeholder="Email"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          placeholderTextColor="#90A4AE"
+        />
+      </View>
+
+      <View style={globalStyles.inputContainer}>
+        <View style={globalStyles.inputIconContainer}>
+          <Icon name="lock" size={24} color="#90A4AE" />
+        </View>
+        <TextInput
+          style={[globalStyles.input, globalStyles.inputWithIcon]}
+          placeholder="Password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          placeholderTextColor="#90A4AE"
+        />
+      </View>
+
+      <TouchableOpacity
+        style={globalStyles.button}
         onPress={() => login({ email, password })}
         disabled={loading}
-      />
-      <Button
-        title="Go to Register"
+      >
+        {loading ? (
+          <ActivityIndicator size="small" color="#FFF" />
+        ) : (
+          <Text style={globalStyles.buttonText}>Login</Text>
+        )}
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={globalStyles.button}
         onPress={() => navigation.navigate('Register')}
         disabled={loading}
-      />
-      <Button
-        title="DEBUG: LOGIN"
+      >
+        <Text style={globalStyles.buttonText}>New store? Sign-up</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={globalStyles.button}
         onPress={debugLoginStore}
         disabled={loading}
+      >
+        <Text style={globalStyles.buttonText}>DEBUG: LOGIN</Text>
+      </TouchableOpacity>
+
+      <CustomAlert
+        show={showAlert}
+        title={alertTitle}
+        message={alertMessage}
+        onConfirm={() => setShowAlert(false)}
       />
-      {loading && <ActivityIndicator size="large" color="#0000ff" />}
-      <Text style={styles.statusText}>{status}</Text>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    padding: 20,
-  },
-  statusText: {
-    fontSize: 18,
-    marginBottom: 20,
-    textAlign: 'center',
-    width: '80%',
-  },
-  input: {
-    height: 40,
-    borderColor: 'gray',
-    borderWidth: 1,
-    marginBottom: 10,
-    paddingHorizontal: 10,
-    width: '80%',
-  },
-});
 
 export default LoginScreen;

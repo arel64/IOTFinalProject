@@ -1,40 +1,30 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, View, Button, ScrollView } from 'react-native';
+import { Text, View, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { globalStyles, alertStyles } from './styles';
 
 function HomeScreen({ navigation }) {
-  const [loading, setLoading] = useState(false);
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.statusText}>Welcome to the Medicine Finder App</Text>
-      <View style={styles.buttonContainer}>
-        <Button title="Add Medicine" onPress={() => navigation.navigate('AddMedicine')} disabled={loading} />
-        <Button title="Generate QR Code" onPress={() => navigation.navigate('GenerateQRCode')} disabled={loading} />
-        <Button title="Checkout Medicine" onPress={() => navigation.navigate('CheckoutMedicine')} disabled={loading} />
-        <Button title="Find Medicine" onPress={() => navigation.navigate('FindMedicine')} disabled={loading} />
+    <ScrollView contentContainerStyle={globalStyles.container}>
+      <Text style={globalStyles.heading}>Welcome to the Medicine Finder App</Text>
+
+      <View style={globalStyles.buttonContainer}>
+        <TouchableOpacity
+          style={globalStyles.button}
+          onPress={() => navigation.navigate('FindMedicine')}
+        >
+          <Text style={globalStyles.buttonText}>I'm a Client</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={globalStyles.button}
+          onPress={() => navigation.navigate('Login')}
+        >
+          <Text style={globalStyles.buttonText}>I'm a Pharmacist</Text>
+        </TouchableOpacity>
       </View>
+
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    paddingVertical: 20,
-  },
-  statusText: {
-    fontSize: 18,
-    marginBottom: 20,
-    textAlign: 'center',
-    width: '80%',
-  },
-  buttonContainer: {
-    width: '80%',
-    marginBottom: 20,
-  },
-});
 
 export default HomeScreen;
