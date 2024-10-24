@@ -23,7 +23,7 @@ export default function AddMedicine({ navigation }) {
   const [alertMessage, setAlertMessage] = useState('');
   const [showCancelButton, setShowCancelButton] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
-
+  const [isAlertActive, setIsAlertActive] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -47,14 +47,6 @@ export default function AddMedicine({ navigation }) {
     setAlertMessage('Do you want to add another one?');
     setShowCancelButton(true);
     setShowAlert(true);
-  };
-
-  const resetForm = () => {
-    setMedicineName('');
-    setManufacturer('');
-    setExpiryDate('');
-    setBatchNumber('');
-    setPrice('');
   };
 
   const addMedicine = async (medicine) => {
@@ -96,6 +88,8 @@ export default function AddMedicine({ navigation }) {
   };
 
   const handleBarCodeScanned = ({ type, data }) => {
+    if (isAlertActive) return;
+    setIsAlertActive(true);
     try {
       const medicine = JSON.parse(data);
       addMedicine(medicine);
@@ -105,7 +99,9 @@ export default function AddMedicine({ navigation }) {
       setAlertMessage('Invalid QR code data');
       setShowCancelButton(false);
       setShowAlert(true);
-      }
+      setIsAlertActive(false);
+
+    }
   };
 
   const validateForm = () => {
@@ -283,10 +279,12 @@ export default function AddMedicine({ navigation }) {
     message={alertMessage}
     onConfirm={() => {
       setShowAlert(false);
+      setIsAlertActive(false);
     }}
     onCancel={() => {
       setManualEntry(false);
       setShowAlert(false);
+      setIsAlertActive(false);
     }}
     showCancelButton={showCancelButton}
     confirmText={showCancelButton ? 'Yes' : 'OK'}

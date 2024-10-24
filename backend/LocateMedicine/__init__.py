@@ -18,17 +18,18 @@ def main(
         readDocument = DocumentReader.getDocumentText(image) # Includes caching by file name as sent by api
         medicationsNames = DocumentAnalyzer().getMedicationsNames(image.name,readDocument) # Includes caching by file name as sent by api
         storesNames,notFoundMedications = getStoresWithMedicationGreedy(medicationsNames)
-        stores = [getStore(storeName) for storeName in storesNames] # 
-        if None in stores:
+        stores = [getStore(storeName) for storeName in storesNames]
+        stores = [store.asdict() for store in stores if store is not None]
+        if None in stores or len(notFoundMedications) != 0:
             response_data = {
-                "stores": [store.asdict() for store in stores if store is not None],
+                "stores": stores,
                 "notFoundMedications": list(notFoundMedications),
                 "message": "There were medications with stores that don't exist, results may be incomplete"
             }
             return func.HttpResponse(body=json.dumps(response_data), status_code=206, mimetype="application/json")   
         response_data = {
-            "stores": [store.asdict() for store in stores if store is not None],
-            "notFoundMedications": list(notFoundMedications)
+            "stores": stores,
+            "notFoundMedications": []
         }
         jsondata = json.dumps(response_data)
         return func.HttpResponse(body=jsondata, status_code=200, mimetype="application/json")

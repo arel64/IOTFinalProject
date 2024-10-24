@@ -1,9 +1,9 @@
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {checkTokenStorage} from './TokenUtils'
+import {checkTokenStorage, logout} from './TokenUtils'
 const URL = Platform.select({
-  ios: "http://192.168.0.185:7071/api",
-  android: "http://192.168.0.185:7071/api",
+  ios: "https://pharmacy-presentation.azurewebsites.net/api",
+  android: "https://pharmacy-presentation.azurewebsites.net/api",
 });
 
 export const makeRequest = async (endpointName, json, headers = {}) => {
@@ -33,8 +33,7 @@ export const makeAuthenticatedRequest = async (endpointName, json, navigation,se
     const response = await makeRequest(endpointName, json, headers);
 
     if (response.status == 401) {
-      navigation.navigate('Login');
-      await AsyncStorage.removeItem('access_token');
+      logout(navigation)
       setStatus(null)
       return null;
     }

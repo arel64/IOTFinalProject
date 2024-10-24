@@ -15,6 +15,7 @@ export default function CheckoutMedicine({ navigation }) {
   const [alertTitle, setAlertTitle] = useState('');
   const [alertMessage, setAlertMessage] = useState('');
   const [showCancelButton, setShowCancelButton] = useState(false);
+  const [isAlertActive, setIsAlertActive] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -98,6 +99,8 @@ export default function CheckoutMedicine({ navigation }) {
   };
 
 const handleBarCodeScanned = ({ type, data }) => {
+  if (isAlertActive) return;
+  setIsAlertActive(true);
   console.log(`QR code detected: ${data}`);
   try {
     const medicine = JSON.parse(data);
@@ -108,6 +111,8 @@ const handleBarCodeScanned = ({ type, data }) => {
     setAlertMessage('Invalid QR code data.');
     setShowCancelButton(false);
     setShowAlert(true);
+    setIsAlertActive(false);
+
   }
 };
 
@@ -117,7 +122,7 @@ return (
     {cameraVisible ? (
       <ScanQrCodeDesign
         onClose={() => setCameraVisible(false)}
-        onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
+        onBarCodeScanned={handleBarCodeScanned}
         />
     ) : (
       <View style={globalStyles.buttonContainer}>
@@ -147,7 +152,16 @@ return (
     show={showAlert}
     title={alertTitle}
     message={alertMessage}
-    onConfirm={() => setShowAlert(false)}
+    onConfirm={() => 
+      {
+        setShowAlert(false)
+        setIsAlertActive(false);
+      }
+    }
+    onCancel={() => {
+      setShowAlert(false);
+      setIsAlertActive(false);
+    }}
   />
   </ScrollView>
   );

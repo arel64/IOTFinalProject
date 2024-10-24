@@ -64,6 +64,7 @@ function FindMedicineScreen() {
         JSON.stringify({ imageData: base64Img, imageName: imageName })
       );
       const data = await response.json();
+      console.log(data)
       if (response.ok) {
         setMarkers(
           data.stores.map((store) => ({
@@ -75,8 +76,9 @@ function FindMedicineScreen() {
         );
         const loc = await getLocation();
         setOrigin(loc);
-
-        if (response.status === 206 && data.notFoundMedications.length > 0) {
+        const status = response.status
+        console.log(status)
+        if (status === 206 && data.notFoundMedications.length > 0) {
           showAlertMessage(
             'Medicine Not Found',
             `The following medicines were not found: ${data.notFoundMedications.join(', ')}`

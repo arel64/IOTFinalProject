@@ -14,3 +14,8 @@ export const checkTokenStorage = async (navigation) => {
     return false;
   }
 };
+export const logout =  async (navigation) => {
+  await AsyncStorage.removeItem('access_token');
+  navigation.navigate('Login');
+  return true
+}

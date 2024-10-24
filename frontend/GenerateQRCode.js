@@ -39,35 +39,41 @@ export default function GenerateQRCode({ navigation }) {
   const printQRCode = async () => {
     if (qrData) {
       try {
-        const uri = await captureRef(qrRef, { format: 'png', quality: 1 });
-
+        const uri = await captureRef(qrRef, {
+          format: 'png',
+          quality: 1,
+          result: 'tmpfile',
+        });
+  
         const base64 = await FileSystem.readAsStringAsync(uri, {
           encoding: FileSystem.EncodingType.Base64,
         });
-
+  
         const html = `
           <html>
             <body style="margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh;">
               <div style="text-align: center;">
+                <h1>QR Code for ${medicineName}</h1>
                 <img src="data:image/png;base64,${base64}" style="width: 200px; height: 200px;" />
               </div>
             </body>
           </html>
         `;
-
+  
         await Print.printAsync({ html });
-    } catch (error) {
-      console.error(error);
-      setAlertTitle('Print Error');
-      setAlertMessage('Failed to print QR code. Please try again.');
+      } catch (error) {
+        console.error(error);
+        setAlertTitle('Print Error');
+        setAlertMessage('Failed to print QR code. Please try again.');
+        setShowAlert(true);
+      }
+    } else {
+      setAlertTitle('No QR Code');
+      setAlertMessage('Please generate a QR code first.');
       setShowAlert(true);
     }
-  } else {
-    setAlertTitle('No QR Code');
-    setAlertMessage('Please generate a QR code first.');
-    setShowAlert(true);
-  }
-};
+  };
+  
 
   return (
     <ScrollView contentContainerStyle={{ ...globalStyles.container, flexGrow: 1 }}>
@@ -108,7 +114,7 @@ export default function GenerateQRCode({ navigation }) {
       </TouchableOpacity>
 
       {qrData && (
-        <View style={{ marginVertical: 20, alignItems: 'center' }} ref={qrRef}>
+        <View collapsable={false} style={{ marginVertical: 20, alignItems: 'center' }} ref={qrRef}>
           <SvgQRCode value={qrData} size={200} />
         </View>
       )}
