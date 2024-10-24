@@ -3,7 +3,7 @@ import { Text, View, TextInput, TouchableOpacity, ActivityIndicator } from 'reac
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { makeRequest } from './CommunicationUtils';
-import { globalStyles, CustomAlert, LoadingAlert } from './styles';
+import { globalStyles, CustomAlert } from './styles';
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -102,8 +102,6 @@ const LoginScreen = ({ navigation }) => {
       >
         <Text style={globalStyles.buttonText}>DEBUG: LOGIN</Text>
       </TouchableOpacity>
-
-      <LoadingAlert show={loading} />
 
       <CustomAlert
         show={showAlert}

@@ -283,7 +283,6 @@ export default function AddMedicine({ navigation }) {
     message={alertMessage}
     onConfirm={() => {
       setShowAlert(false);
-      setCameraVisible(false);
     }}
     onCancel={() => {
       setManualEntry(false);

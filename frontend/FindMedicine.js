@@ -63,9 +63,6 @@ function FindMedicineScreen() {
         'LocateMedicine',
         JSON.stringify({ imageData: base64Img, imageName: imageName })
       );
-      console.log(response);
-      if (!response) return;
-
       const data = await response.json();
       if (response.ok) {
         setMarkers(
@@ -76,13 +73,19 @@ function FindMedicineScreen() {
             description: store.Email,
           }))
         );
-        console.log(data);
         const loc = await getLocation();
         setOrigin(loc);
-        showAlertMessage('Success', 'Markers and directions updated.');
-        console.log('Directions updated');
+
+        if (response.status === 206 && data.notFoundMedications.length > 0) {
+          showAlertMessage(
+            'Medicine Not Found',
+            `The following medicines were not found: ${data.notFoundMedications.join(', ')}`
+          );
+        } else {
+          showAlertMessage('Success', 'Markers and directions updated.');
+        }
       } else {
-        showAlertMessage('Failed', `Failed to locate medicine: ${data.error}`);
+        showAlertMessage('Failed', `Failed to locate medicine: ${data.error || 'Unknown error'}`);
       }
     } catch (error) {
       showAlertMessage('Error', 'An error occurred while sending the image.');

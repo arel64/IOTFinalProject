@@ -19,7 +19,7 @@ const Register = ({ navigation }) => {
   const [showMap, setShowMap] = useState(false);
 
   const registerStoreAndLogin = async (storeData) => {
-    if (!validateForm()) return;
+    if (!validateForm(storeData)) return;
     setLoading(true);
     try {
       const response = await makeRequest('RegisterStore', JSON.stringify(storeData));
@@ -51,20 +51,39 @@ const Register = ({ navigation }) => {
       storeName: 'Super Pharm Rishon',
       email: 'newpharmacy1@example.com',
       contactNumber: '123-456-7890',
+      latitude: '31.99010628788995', 
       latitude: '31.99010628788995',
       longitude: '34.77442841049924',
-      password: 'testpassword',
+      password: 'testpassword'
     };
+    const debugStoreData1 = {
+      storeName: 'Super Pharm Holon',
+      email: 'newpharmacy2@example.com',
+      contactNumber: '987-654-3210',
+      latitude: '32.01235981694784', 
+      longitude: '34.77987582094045',
+      password: 'testpassword123'
+    };
+    const debugStoreData2 = {
+      storeName: 'Supher Pharm Tel Aviv',
+      email: 'samplepharmacy@example.com',
+      contactNumber: '555-123-4567',
+      latitude: '32.06284224869756', 
+      longitude: '34.775723690405066',
+      password: 'securepassword'
+    };
+    registerStoreAndLogin(debugStoreData1);
+    registerStoreAndLogin(debugStoreData2);
     registerStoreAndLogin(debugStoreData);
   };
 
-  const validateForm = () => {
+  const validateForm = (storeData) => {
     const missingFields = [];
-    if (!storeName) missingFields.push('Store Name');
-    if (!email) missingFields.push('Email');
-    if (!contactNumber) missingFields.push('Contact Number');
-    if (!password) missingFields.push('Password');
-    if (!latitude || !longitude) missingFields.push('Location');
+    if (!storeData.storeName) missingFields.push('Store Name');
+    if (!storeData.email) missingFields.push('Email');
+    if (!storeData.contactNumber) missingFields.push('Contact Number');
+    if (!storeData.password) missingFields.push('Password');
+    if (!storeData.latitude || !storeData.longitude) missingFields.push('Location');
 
     if (missingFields.length > 0) {
       setAlertTitle('Missing Fields');
@@ -181,7 +200,9 @@ const Register = ({ navigation }) => {
         show={showAlert}
         title={alertTitle}
         message={alertMessage}
-        onConfirm={() => setShowAlert(false)}
+        onConfirm={() => {
+          setShowAlert(false);
+        }}
       />
     </ScrollView>
   );

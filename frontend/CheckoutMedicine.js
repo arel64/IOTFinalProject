@@ -50,7 +50,12 @@ export default function CheckoutMedicine({ navigation }) {
       const text = await response.text();
   
       setAlertTitle('Success');
-      setAlertMessage(text);
+      setAlertMessage(`Medicine Removed successfully!\n\n
+        Name: ${medicine.medicineName}\n
+        Manufacturer: ${medicine.manufacturer}\n
+        Expiry Date: ${medicine.expiryDate}\n
+        Batch Number: ${medicine.batchNumber}\n
+        Price: ${medicine.price}`);
       setShowCancelButton(false);
       setShowAlert(true);
     } catch (error) {
@@ -112,8 +117,8 @@ return (
     {cameraVisible ? (
       <ScanQrCodeDesign
         onClose={() => setCameraVisible(false)}
-        onBarCodeScanned={handleBarCodeScanned}
-      />
+        onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
+        />
     ) : (
       <View style={globalStyles.buttonContainer}>
         <TouchableOpacity style={globalStyles.button} onPress={() => checkoutHardcodedMedicines({ medicineName: 'Aspirin' })}>
