@@ -1,4 +1,4 @@
-
+from datetime import datetime
 from Medicine import findMedicineEntitiesByName
 from schemaUtils import createTableIfNotExists, getMedicineTableName
 
@@ -9,10 +9,11 @@ def getStoresWithMedicationGreedy(medicationNames: set[str]) -> tuple[set[str], 
     for medicationName in medicationNames:
         entities = findMedicineEntitiesByName(medicationsTable, medicationName)
         for entity in entities:
-            medication_to_stores[medicationName].add(entity['StoreName'])  # type: ignore
+            if isViableMedicine(entity):
+                medication_to_stores[medicationName].add(entity['StoreName'])  # type: ignore
 
     noStoreMedications = {med for med, stores in medication_to_stores.items() if not stores}
-    medicationNames -= noStoreMedications  
+    medicationNames -= noStoreMedications
     
     notFoundMedications = set(medicationNames)
     selectedStores = set[str]()
@@ -37,3 +38,6 @@ def getStoresWithMedicationGreedy(medicationNames: set[str]) -> tuple[set[str], 
     notFoundMedications.update(noStoreMedications)
     
     return selectedStores, notFoundMedications
+
+def isViableMedicine(entity):
+    return int(entity['Quantity']) > 0 and datetime.strptime(entity['ExpiryDate'], "%Y-%m-%d") >= datetime.now()
