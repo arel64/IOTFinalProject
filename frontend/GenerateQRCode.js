@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Text, View, TextInput, TouchableOpacity, ScrollView } from 'react-native';
+import { Text, View, TextInput, TouchableOpacity, ScrollView, Modal } from 'react-native';
 import SvgQRCode from 'react-native-qrcode-svg';
 import * as Print from 'expo-print';
 import { captureRef } from 'react-native-view-shot';
@@ -17,6 +17,7 @@ export default function GenerateQRCode({ navigation }) {
   const [alertTitle, setAlertTitle] = useState('');
   const [alertMessage, setAlertMessage] = useState('');
   const [qrData, setQrData] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
   const qrRef = useRef(null);
 
   useEffect(() => {
@@ -34,6 +35,7 @@ export default function GenerateQRCode({ navigation }) {
       price: parseFloat(price),
     };
     setQrData(JSON.stringify(medicine));
+    setModalVisible(true);
   };
 
   const printQRCode = async () => {
@@ -73,7 +75,6 @@ export default function GenerateQRCode({ navigation }) {
       setShowAlert(true);
     }
   };
-  
 
   return (
     <ScrollView contentContainerStyle={{ ...globalStyles.container, flexGrow: 1 }}>
@@ -113,22 +114,31 @@ export default function GenerateQRCode({ navigation }) {
         <Text style={globalStyles.buttonText}>Generate QR Code</Text>
       </TouchableOpacity>
 
-      {qrData && (
-        <View collapsable={false} style={{ marginVertical: 20, alignItems: 'center' }} ref={qrRef}>
-          <SvgQRCode value={qrData} size={200} />
-        </View>
-      )}
-
-      <TouchableOpacity style={globalStyles.button} onPress={printQRCode}>
-        <Text style={globalStyles.buttonText}>Print QR Code</Text>
-      </TouchableOpacity>
-
       <TouchableOpacity
         style={globalStyles.button}
         onPress={() => navigation.navigate('PharmacistDashboard')}
       >
         <Text style={globalStyles.buttonText}>Back</Text>
       </TouchableOpacity>
+
+      <Modal visible={modalVisible} transparent={true} animationType="slide">
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+          <View style={{ width: 300, padding: 20, backgroundColor: 'white', borderRadius: 10, alignItems: 'center' }}>
+            {qrData && (
+              <View collapsable={false} style={{ marginBottom: 20 }} ref={qrRef}>
+                <SvgQRCode value={qrData} size={200} />
+              </View>
+            )}
+            <TouchableOpacity style={globalStyles.button} onPress={printQRCode}>
+              <Text style={globalStyles.buttonText}>Print QR Code</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={globalStyles.button} onPress={() => setModalVisible(false)}>
+              <Text style={globalStyles.buttonText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       <CustomAlert
         show={showAlert}
         title={alertTitle}
