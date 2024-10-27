@@ -168,14 +168,14 @@ function FindMedicineScreen() {
 
   return (
       <ScrollView contentContainerStyle={globalStyles_client.container}>
-        <TouchableOpacity
+        {/* <TouchableOpacity
           style={globalStyles_client.button}
           onPress={handleSendHardcodedImage}
           disabled={loading}
         >
           <Text style={globalStyles_client.buttonText}>DEBUG: Send Hardcoded Image</Text>
         </TouchableOpacity>
-  
+   */}
         <TouchableOpacity style={globalStyles_client.button} onPress={handleTakePicture} disabled={loading}>
           <Icon name="camera" size={20} color="#fff" style={{ marginRight: 8 }} />
           <Text style={globalStyles_client.buttonText}>Take Picture and Send</Text>

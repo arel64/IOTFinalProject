@@ -126,9 +126,9 @@ return (
         />
     ) : (
       <View style={globalStyles.buttonContainer}>
-        <TouchableOpacity style={globalStyles.button} onPress={() => checkoutHardcodedMedicines({ medicineName: 'Aspirin' })}>
+        {/* <TouchableOpacity style={globalStyles.button} onPress={() => checkoutHardcodedMedicines({ medicineName: 'Aspirin' })}>
           <Text style={globalStyles.buttonText}>DEBUG Checkout Hardcoded Medicine</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
         <TouchableOpacity style={globalStyles.button} onPress={() => setCameraVisible(true)} disabled={loading}>
             <Icon name="qrcode-scan" size={24} color="white" />

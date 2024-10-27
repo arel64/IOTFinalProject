@@ -235,13 +235,13 @@ export default function AddMedicine({ navigation }) {
         </>
       ) : (
         <View style={globalStyles.buttonContainer}>
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={globalStyles.button}
             onPress={addHardcodedMedicines}
             disabled={loading}
           >
             <Text style={globalStyles.buttonText}>DEBUG Add Hardcoded Medicines</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
   
           <TouchableOpacity
             style={globalStyles.button}

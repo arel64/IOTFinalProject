@@ -37,13 +37,13 @@ const LoginScreen = ({ navigation }) => {
   };
   
 
-  const debugLoginStore = () => {
-    const debugLoginData = {
-      email: 'newpharmacy1@example.com',
-      password: 'testpassword'
-    };
-    login(debugLoginData);
-  };
+  // const debugLoginStore = () => {
+  //   const debugLoginData = {
+  //     email: 'newpharmacy1@example.com',
+  //     password: 'testpassword'
+  //   };
+  //   login(debugLoginData);
+  // };
 
   return (
     <View style={globalStyles.container}>
@@ -95,13 +95,13 @@ const LoginScreen = ({ navigation }) => {
         <Text style={globalStyles.buttonText}>New store? Sign-up</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity
+      {/* <TouchableOpacity
         style={globalStyles.button}
         onPress={debugLoginStore}
         disabled={loading}
       >
         <Text style={globalStyles.buttonText}>DEBUG: LOGIN</Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
 
       <CustomAlert
         show={showAlert}

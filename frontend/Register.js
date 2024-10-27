@@ -187,9 +187,9 @@ const Register = ({ navigation }) => {
         <Text style={globalStyles.buttonText}>Go to Login</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={globalStyles.button} onPress={debugRegisterStores} disabled={loading}>
+      {/* <TouchableOpacity style={globalStyles.button} onPress={debugRegisterStores} disabled={loading}>
         <Text style={globalStyles.buttonText}>DEBUG: Register stores</Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
 
       {loading && (
         <View style={globalStyles.loadingOverlay}>
